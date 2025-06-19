@@ -1,0 +1,459 @@
+<!-- исправленный absences.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Все посещения</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        .attendance-list {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            margin-top: 30px;
+            align-items: center;
+        }
+        .attendance-card {
+            background: #23262C;
+            border-radius: 14px;
+            box-shadow: 0 2px 12px 0 #0003;
+            padding: 22px 28px 18px 28px;
+            min-width: 320px;
+            max-width: 420px;
+            width: 100%;
+            color: #fff;
+            text-align: left;
+            transition: box-shadow 0.2s;
+            border-left: 6px solid #27ae60;
+        }
+        .attendance-card .status-present { color: #27ae60; }
+        .attendance-card .status-absent { color: #e74c3c; }
+        .attendance-card .status-late { color: #f39c12; }
+        .attendance-card .status-sick { color: #2980ef; }
+        .attendance-card .status-excused { color: #8e44ad; } /* добавлен стиль для уважительной причины */
+        .attendance-card strong {
+            display: inline-block;
+            min-width: 110px;
+            color: #b8bfc9;
+        }
+        .attendance-card:not(:last-child) {
+            margin-bottom: 10px;
+        }
+        .attendance-card .comment {
+            color: #ffd700;
+            font-style: italic;
+        }
+        /* Добавим стили для статусов в таблице */
+        .status-present { color: #27ae60; }
+        .status-absent { color: #e74c3c; }
+        .status-late { color: #f39c12; }
+        .status-sick { color: #2980ef; }
+        .status-excused { color: #8e44ad; }
+    </style>
+    
+</head>
+<body>
+<nav class="topbar" id="topbar">
+    <div class="topbar-links" id="topbarLinks">
+        <a href="index.html" class="sidebar-link" title="Главная">
+            <span class="sidebar-icon"><i class="fas fa-home"></i></span>
+            <span class="sidebar-label">Главная</span>
+        </a>
+        <a href="attendance.html" class="sidebar-link" title="Отметить явку">
+            <span class="sidebar-icon"><i class="fas fa-user-check"></i></span>
+            <span class="sidebar-label">Явка</span>
+        </a>
+        <a href="absences.html" class="sidebar-link" title="Явка за месяц">
+            <span class="sidebar-icon"><i class="fas fa-chart-bar"></i></span>
+            <span class="sidebar-label">Явка за месяц</span>
+        </a>
+        <a href="students.html" class="sidebar-link" title="Панель старосты и его зама">
+            <span class="sidebar-icon"><i class="fas fa-user-graduate"></i></span>
+            <span class="sidebar-label">Панель старосты и его зама</span>
+        </a>
+        <a id="adminLink" href="admin.html" class="sidebar-link" style="display:none;">
+            <span class="sidebar-icon"><i class="fas fa-user-shield"></i></span>
+            <span class="sidebar-label">Админ<br>панель</span>
+        </a>
+        <a href="settings.html" class="sidebar-link" title="Настройки">
+            <span class="sidebar-icon"><i class="fas fa-cog"></i></span>
+            <span class="sidebar-label settings-label">Настройки</span>
+        </a>
+        <button class="logout-btn" onclick="window.location.href='login.html'">
+            <span class="sidebar-icon"><i class="fas fa-sign-out-alt"></i></span>
+            <span class="logout-label">Выйти</span>
+        </button>
+    </div>
+</nav>
+<div class="container">
+    <h2>Все посещения</h2>
+    <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px;">
+        <label for="monthSelect"><b>Месяц:</b></label>
+        <select id="monthSelect"></select>
+        <label for="studentSelect"><b>Студент:</b></label>
+        <select id="studentSelect"></select>
+        <label for="dateSelect"><b>Дата:</b></label>
+        <select id="dateSelect">
+            <option value="">Все</option>
+        </select>
+    </div>
+    <div id="mainTable"></div>
+</div>
+<!-- Модальное окно подтверждения -->
+<div id="deleteModal" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:#0007; z-index:1000; align-items:center; justify-content:center;">
+    <div style="background:#fff; color:#222; border-radius:12px; padding:32px 28px; min-width:280px; max-width:90vw; box-shadow:0 8px 32px #0003; text-align:center;">
+        <div style="font-size:1.2em; margin-bottom:18px;">Вы действительно хотите удалить эту запись?</div>
+        <div style="display:flex; gap:18px; justify-content:center;">
+            <button id="modalConfirmBtn" style="background:#e74c3c; color:#fff; border:none; border-radius:6px; padding:8px 22px; font-size:1em; cursor:pointer;">Удалить</button>
+            <button id="modalCancelBtn" style="background:#eee; color:#222; border:none; border-radius:6px; padding:8px 22px; font-size:1em; cursor:pointer;">Отмена</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function getMissedHours(status) {
+        if (status === 'Отсутствовал') return 2;
+        if (status === 'Опоздал') return 1;
+        if (status === 'Больничный' || status === 'Уважительная причина') return 2;
+        return 0;
+    }
+
+    const monthNames = [
+        'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь',
+        'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь'
+    ];
+
+    function getMonthFromDate(dateStr) {
+        const [year, month, day] = dateStr.split('-').map(Number);
+        if (!year || !month || !day) return null;
+        return month - 1;
+    }
+
+    function fillMonthSelect(data) {
+        const select = document.getElementById('monthSelect');
+        select.innerHTML = '';
+        const monthsSet = new Set();
+        data.forEach(row => {
+            if (row.date) {
+                const m = getMonthFromDate(row.date);
+                if (m !== null && (m >= 8 || m <= 5)) monthsSet.add(m);
+            }
+        });
+        const months = Array.from(monthsSet).sort((a, b) => ((a + 4) % 12) - ((b + 4) % 12));
+        months.forEach(m => {
+            const option = document.createElement('option');
+            let idx = m >= 8 ? m - 8 : m + 4;
+            option.value = m;
+            option.textContent = monthNames[idx];
+            select.appendChild(option);
+        });
+    }
+
+    function fillStudentSelect(data) {
+        const select = document.getElementById('studentSelect');
+        select.innerHTML = '';
+        const studentsSet = new Set();
+        data.forEach(row => {
+            if (row.student) studentsSet.add(row.student);
+        });
+        const students = Array.from(studentsSet).sort();
+        // Добавим вариант "Все"
+        const allOption = document.createElement('option');
+        allOption.value = '';
+        allOption.textContent = 'Все';
+        select.appendChild(allOption);
+
+        students.forEach(s => {
+            const option = document.createElement('option');
+            option.value = s;
+            option.textContent = s;
+            select.appendChild(option);
+        });
+    }
+
+    function fillDateSelect(data, month) {
+        const select = document.getElementById('dateSelect');
+        select.innerHTML = '<option value="">Все</option>';
+        const datesSet = new Set();
+        data.forEach(row => {
+            if (row.date) {
+                const m = getMonthFromDate(row.date);
+                if (m === Number(month)) {
+                    datesSet.add(row.date);
+                }
+            }
+        });
+        const dates = Array.from(datesSet).sort();
+        dates.forEach(date => {
+            const option = document.createElement('option');
+            option.value = date;
+            option.textContent = date;
+            select.appendChild(option);
+        });
+    }
+
+    // --- ДОБАВЛЕНО: функция удаления явки ---
+    async function deleteAbsence(index, month) {
+        if (!confirm('Удалить эту запись?')) return;
+        try {
+            const res = await fetch('http://localhost:6001/absences', { method: 'GET' });
+            if (!res.ok) throw new Error('Ошибка загрузки данных');
+            let data = await res.json();
+
+            // Фильтруем по месяцу
+            const filtered = data.filter(row => {
+                if (!row.date) return false;
+                const m = getMonthFromDate(row.date);
+                return m === Number(month);
+            });
+
+            // Получаем запись для удаления
+            const toDelete = filtered[index];
+            if (!toDelete) return;
+
+            // Отправляем запрос на удаление
+            const delRes = await fetch('http://localhost:6001/absences', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(toDelete)
+            });
+            if (!delRes.ok) throw new Error('Ошибка удаления');
+
+            // Получаем текущего пользователя
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            addActionLog(currentUser.username, `Удалил явку для ${toDelete.student} по предмету "${toDelete.subject}" (${toDelete.date})`);
+
+            // Перезагружаем таблицу
+            await loadAbsences();
+        } catch (e) {
+            alert('Ошибка удаления');
+            console.error(e);
+        }
+    }
+    // --- КОНЕЦ ДОБАВЛЕНИЯ ---
+
+    function renderMainTable(data, month) {
+        // Получаем текущего пользователя
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        const allowedRoles = ['headman', 'deputy_headman', 'curator', 'admin', 'администратор', 'староста', 'зам старосты', 'куратор'];
+
+        // Проверяем, есть ли у пользователя нужная роль
+        function canDelete() {
+            if (!currentUser) return false;
+            const role = (currentUser.role || '').toLowerCase();
+            const roleName = (currentUser.roleName || '').toLowerCase();
+            return allowedRoles.includes(role) || allowedRoles.includes(roleName);
+        }
+
+        const selectedDate = document.getElementById('dateSelect')?.value || '';
+        const selectedStudent = document.getElementById('studentSelect')?.value || '';
+
+        const filtered = data.filter(row => {
+            if (!row.date) return false;
+            const m = getMonthFromDate(row.date);
+            if (m !== Number(month)) return false;
+            if (selectedDate && row.date !== selectedDate) return false;
+            if (selectedStudent && row.student !== selectedStudent) return false;
+            return true;
+        });
+
+        let html = `
+    <table class="attendance-table" style="width:100%;font-size:1.1em;">
+        <thead>
+            <tr>
+                <th>Дата</th>
+                <th>ФИО студента</th>
+                <th>Предмет</th>
+                <th>Статус</th>
+                <th>Комментарий</th>
+                <th>Пропущено часов</th>
+                <th>Действие</th>
+            </tr>
+        </thead>
+        <tbody>
+    `;
+        if (!filtered.length) {
+            html += `<tr><td colspan="7" style="text-align:center;">Нет данных</td></tr>`;
+        } else {
+            filtered.forEach((row, idx) => {
+                let statusClass = '';
+                if (row.status === 'Присутствовал') statusClass = 'status-present';
+                else if (row.status === 'Отсутствовал') statusClass = 'status-absent';
+                else if (row.status === 'Опоздал') statusClass = 'status-late';
+                else if (row.status === 'Больничный') statusClass = 'status-sick';
+                else if (row.status === 'Уважительная причина') statusClass = 'status-excused';
+
+                const missedHours = getMissedHours(row.status);
+
+                html += `
+                <tr>
+                    <td>${row.date || ''}</td>
+                    <td>${row.student || ''}</td>
+                    <td>${row.subject || ''}</td>
+                    <td class="${statusClass}">${row.status || ''}</td>
+                    <td>${row.comment || ''}</td>
+                    <td>${missedHours}</td>
+                    <td>
+                        ${canDelete() ? `<button onclick="showDeleteModal(${idx}, ${month})" style="color:#e74c3c; background:none; border:none; cursor:pointer;">
+                            <i class="fas fa-trash"></i>
+                        </button>` : ''}
+                    </td>
+                </tr>
+            `;
+            });
+        }
+        html += '</tbody></table>';
+
+        document.getElementById('mainTable').innerHTML = html;
+    }
+
+    async function loadAbsences() {
+        try {
+            const res = await fetch('http://localhost:6001/absences');
+            if (!res.ok) throw new Error('Ошибка загрузки данных');
+            const data = await res.json();
+
+            fillMonthSelect(data);
+            fillStudentSelect(data);
+
+            const select = document.getElementById('monthSelect');
+            function renderForMonth(month) {
+                fillDateSelect(data, month); // обязательно вызываем!
+                renderMainTable(data, month);
+            }
+
+            document.getElementById('monthSelect').onchange = function() {
+                renderForMonth(this.value);
+            };
+
+            document.getElementById('dateSelect').onchange = function() {
+                renderMainTable(data, document.getElementById('monthSelect').value);
+            };
+
+            document.getElementById('studentSelect').onchange = function() {
+                renderMainTable(data, select.value);
+            };
+
+            if (select.options.length > 0) {
+                select.selectedIndex = 0;
+                renderForMonth(select.value);
+            } else {
+                document.getElementById('mainTable').innerHTML = '<p>Нет данных</p>';
+            }
+        } catch (e) {
+            document.getElementById('mainTable').innerHTML = '<p style="color:red;">Ошибка загрузки данных</p>';
+            console.error(e);
+        }
+    }
+    window.onload = loadAbsences;
+
+    // --- Модальное подтверждение удаления ---
+    let deleteAbsenceIndex = null;
+    let deleteAbsenceMonth = null;
+
+    function showDeleteModal(index, month) {
+        deleteAbsenceIndex = index;
+        deleteAbsenceMonth = month;
+        document.getElementById('deleteModal').style.display = 'flex';
+    }
+    function hideDeleteModal() {
+        document.getElementById('deleteModal').style.display = 'none';
+        deleteAbsenceIndex = null;
+        deleteAbsenceMonth = null;
+    }
+
+    document.getElementById('modalCancelBtn').onclick = hideDeleteModal;
+    document.getElementById('modalConfirmBtn').onclick = async function() {
+        if (deleteAbsenceIndex !== null && deleteAbsenceMonth !== null) {
+            await deleteAbsence(deleteAbsenceIndex, deleteAbsenceMonth, true);
+        }
+        hideDeleteModal();
+    };
+
+    // --- изменённая функция удаления ---
+    async function deleteAbsence(index, month, confirmed = false) {
+        // Проверка роли
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        const allowedRoles = ['headman', 'deputy_headman', 'curator', 'admin', 'администратор', 'староста', 'зам старосты', 'куратор'];
+        function canDelete() {
+            if (!currentUser) return false;
+            const role = (currentUser.role || '').toLowerCase();
+            const roleName = (currentUser.roleName || '').toLowerCase();
+            return allowedRoles.includes(role) || allowedRoles.includes(roleName);
+        }
+        if (!canDelete()) {
+            alert('Удалять явку могут только староста, зам старосты, куратор или администратор!');
+            return;
+        }
+
+        if (!confirmed) {
+            showDeleteModal(index, month);
+            return;
+        }
+        try {
+            const res = await fetch('http://localhost:6001/absences', { method: 'GET' });
+            if (!res.ok) throw new Error('Ошибка загрузки данных');
+            let data = await res.json();
+
+            // Фильтруем по месяцу
+            const filtered = data.filter(row => {
+                if (!row.date) return false;
+                const m = getMonthFromDate(row.date);
+                return m === Number(month);
+            });
+
+            // Получаем запись для удаления
+            const toDelete = filtered[index];
+            if (!toDelete) return;
+
+            // Отправляем запрос на удаление
+            const delRes = await fetch('http://localhost:6001/absences', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(toDelete)
+            });
+            if (!delRes.ok) throw new Error('Ошибка удаления');
+
+            // Получаем текущего пользователя
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            addActionLog(currentUser.username, `Удалил явку для ${toDelete.student} по предмету "${toDelete.subject}" (${toDelete.date})`);
+
+            // Перезагружаем таблицу
+            await loadAbsences();
+        } catch (e) {
+            alert('Ошибка удаления');
+            console.error(e);
+        }
+    }
+
+    function addActionLog(user, action) {
+        const logs = JSON.parse(localStorage.getItem('actionLogs')) || [];
+        logs.unshift({
+            time: new Date().toLocaleString(),
+            user,
+            action
+        });
+        localStorage.setItem('actionLogs', JSON.stringify(logs.slice(0, 1000)));
+    }
+</script>
+<script>
+    // Проверка, был ли пользователь отключён администратором
+    function checkKicked() {
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        if (!user) return;
+        const onlineUsers = JSON.parse(localStorage.getItem('onlineUsers')) || [];
+        const isOnline = onlineUsers.some(u => u.username === user.username);
+        if (!isOnline) {
+            alert('Вы были отключены администратором!');
+            localStorage.removeItem('currentUser');
+            window.location.href = 'login.html';
+        }
+    }
+    setInterval(checkKicked, 5000);
+    checkKicked();
+
+    // ...остальной ваш код...
+</script>
+</body>
+</html>

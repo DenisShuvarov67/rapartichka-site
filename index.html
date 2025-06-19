@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Главная страница</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Уменьшаем шрифт для пунктов меню в сайдбаре */
+        .sidebar-link, .sidebar-settings .sidebar-link, .sidebar-logout .logout-btn {
+            font-size: 12px !important; /* уменьшили еще больше */
+        }
+        .sidebar-icon {
+            font-size: 18px !important;
+        }
+        .sidebar-label, .settings-label, .logout-label {
+            font-size: 11px !important; /* уменьшили еще больше */
+        }
+        /* Стили для блока часов и уведомлений */
+        .clock-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: absolute;
+            top: 64px; /* было 24px, стало 64px */
+            right: 40px;
+            z-index: 10;
+            background: transparent;
+        }
+        .clock-box #date, .clock-box #time {
+            text-align: right;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .clock-box .bell-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            margin-left: 8px;
+            font-size: 22px;
+            color: #36d46c;
+            transition: color 0.2s;
+        }
+        .clock-box .bell-btn:hover {
+            color: #2fa85a;
+        }
+    </style>
+</head>
+<body>
+    <div class="clock-box">
+      <div>
+        <div id="date"></div>
+        <div id="time"></div>
+      </div>
+    </div>
+    <!-- Sidebar -->
+    <nav class="topbar" id="topbar">
+        <button id="sidebarToggle" class="sidebar-toggle" aria-label="Открыть меню">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="topbar-links" id="topbarLinks">
+            <a href="index.html" class="sidebar-link active" title="Главная">
+                <span class="sidebar-icon"><i class="fas fa-home"></i></span>
+                <span class="sidebar-label">Главная</span>
+            </a>
+            <a href="attendance.html" class="sidebar-link" title="Отметить явку">
+                <span class="sidebar-icon"><i class="fas fa-user-check"></i></span>
+                <span class="sidebar-label">Явка</span>
+            </a>
+            <a href="absences.html" class="sidebar-link" title="Явка за месяц">
+                <span class="sidebar-icon"><i class="fas fa-chart-bar"></i></span>
+                <span class="sidebar-label">Явка за месяц</span>
+            </a>
+            <a href="students.html" class="sidebar-link" title="Панель старосты и его зама">
+                <span class="sidebar-icon"><i class="fas fa-user-graduate"></i></span>
+                <span class="sidebar-label">Панель старосты и его зама</span>
+            </a>
+            <a href="https://t.me/+rkj_U8Ou3uYyMzNi" class="sidebar-link" title="Чат в Telegram" target="_blank" rel="noopener">
+                <span class="sidebar-icon"><i class="fab fa-telegram-plane"></i></span>
+                <span class="sidebar-label">Telegram чат</span>
+            </a>
+            <a id="adminLink" href="admin.html" class="sidebar-link">
+                <span class="sidebar-icon"><i class="fas fa-user-shield"></i></span>
+                <span class="sidebar-label">Админ<br>панель</span>
+            </a>
+            <a href="settings.html" class="sidebar-link" title="Настройки">
+                <span class="sidebar-icon"><i class="fas fa-cog"></i></span>
+                <span class="sidebar-label settings-label">Настройки</span>
+            </a>
+            <button class="logout-btn" onclick="window.location.href='login.html'">
+                <span class="sidebar-icon"><i class="fas fa-sign-out-alt"></i></span>
+                <span class="logout-label">Выйти</span>
+            </button>
+        </div>
+    </nav>
+    <!-- Main part -->
+    <div class="main-wrapper">
+        <div class="info-block">
+            <h2>
+
+                <img id="mainUserAvatar" src="img/default-avatar.png" alt="Аватар" style="width:64px;height:78px;border-radius:50%;vertical-align:middle;margin-right:10px;object-fit:cover;">
+                Добро пожаловать, <span id="userName">Пользователь</span>!
+            </h2>
+            
+            <div class="user-info">
+                <h3>Ваша информация</h3>
+                <p>Имя пользователя: <span id="userNameInfo">-</span></p>
+                <p>ФИО студента: <span id="userFullNameInfo">-</span></p>
+                <p>Роль: <span id="userRole">Не определена</span></p>
+                <div id="userInfo"></div>
+            </div>
+            <!-- Быстрое действие теперь здесь -->
+            <div class="quick-actions-block" style="margin-top: 20px;">
+                <h3>Быстрое действие</h3>
+                <button id="quickMarkAttendanceBtn" style="padding: 8px 18px; font-size: 15px;">Отметить явку</button>
+                <!-- Быстрое действие для задач (видно только для нужных ролей) -->
+                <button id="addTaskBtn" style="padding: 8px 18px; font-size: 15px; display:none;">Добавить задачу</button>
+            </div>
+            <div id="tasksBlock" style="margin-top: 30px; display:none;">
+                <h3>Список задач</h3>
+                <ul id="tasksList"></ul>
+                <button id="addTaskBtn" style="padding: 8px 18px; font-size: 15px; display:none; margin-top: 16px;">Добавить задачу</button>
+            </div>
+        </div>
+        <div class="attendance-block">
+            <div class="attendance" id="attendance">
+                <h3>Явка</h3>
+                <p>Студент: <span id="studentNameAttendance">-</span></p>
+                <p>Пропущено часов: <span id="absentHours">0</span></p>
+                <p>Пропущено пар: <span id="absentLessons">0</span></p>
+                <p>Уважительные причины: <span id="excusedHours">0</span></p>
+                <p>Больничные: <span id="sickHours">0</span></p>
+                <p>Опоздания (часы): <span id="lateHours">0</span></p>
+                <p>Отсутствовал (часы): <span id="absentOnlyHours">0</span></p>
+            </div>
+        </div>
+        <!-- Удаляем старое место блока быстрого действия -->
+        <!-- <div class="quick-actions-block" style="margin-top: 20px;"> ... </div> -->
+    </div>
+    <div id="taskModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:#fff; padding:24px; border-radius:8px; min-width:300px;">
+    <h3>Добавить задачу</h3>
+    <input id="taskInput" type="text" placeholder="Введите задачу" style="width:100%;padding:8px;">
+    <div style="margin-top:12px; text-align:right;">
+      <button id="saveTaskBtn" style="padding:6px 16px;">Сохранить</button>
+      <button id="cancelTaskBtn" style="padding:6px 16px;">Отмена</button>
+    </div>
+  </div>
+</div>
+    <script>
+        function getDisplayRole(user) {
+    // Приоритет: roleName, затем role
+    if (user.roleName && user.roleName.trim() !== '') return user.roleName;
+    switch ((user.role || '').toLowerCase()) {
+        case 'student': return 'Студент';
+        case 'headman': return 'Староста';
+        case 'deputy_headman': return 'Зам старосты';
+        case 'curator': return 'Куратор';
+        case 'admin':
+        case 'администратор': return 'Администратор';
+        default: return user.role || '-';
+    }
+}
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            let user = currentUser;
+            try {
+                const res = await fetch('http://localhost:6001/users');
+                if (res.ok) {
+                    const users = await res.json();
+                    const found = users.find(u => u.username === currentUser.username);
+                    if (found) {
+                        // Сохраняем старый аватар, если в новых данных он пустой
+                        if ((!found.avatar || found.avatar === '') && currentUser.avatar) {
+                            found.avatar = currentUser.avatar;
+                        }
+                        user = found;
+                        localStorage.setItem('currentUser', JSON.stringify(user));
+                    }
+                }
+            } catch (e) {
+                // fallback на localStorage
+            }
+
+            // --- вот здесь обновляем аватар на главной ---
+            const avatar = document.getElementById('mainUserAvatar');
+            if (user && user.avatar && avatar) {
+                avatar.src = user.avatar;
+            } else if (avatar) {
+                avatar.src = 'img/default-avatar.png';
+            }
+
+            // Быстрое действие: отметить явку
+            const quickMarkAttendanceBtn = document.getElementById('quickMarkAttendanceBtn');
+            if (quickMarkAttendanceBtn) {
+                quickMarkAttendanceBtn.onclick = function() {
+                    window.location.href = 'attendance.html';
+                };
+            }
+
+            if (user) {
+                document.getElementById('userName').textContent = user.fullName || user.username;
+                document.getElementById('userNameInfo').textContent = user.username;
+                document.getElementById('userFullNameInfo').textContent = user.fullName || '-';
+                document.getElementById('userRole').textContent = getDisplayRole(user); // <-- вот тут!
+                let shortName = user.fullName
+                    ? user.fullName.split(' ').slice(0, 2).join(' ')
+                    : user.username;
+                document.getElementById('studentNameAttendance').textContent = shortName;
+
+                // Показываем дополнительные роли, если есть
+                let additionalRoles = '-';
+                if (user.additionalRoles && Array.isArray(user.additionalRoles) && user.additionalRoles.length > 0) {
+                    additionalRoles = user.additionalRoles
+                        .filter(r => r && r.trim() !== '')
+                        .join(', ');
+                }
+                document.getElementById('userInfo').innerHTML =
+                    `<b>Дополнительные роли:</b> ${additionalRoles}`;
+            
+                async function updateAttendanceBlock() {
+                    let attendanceData = [];
+                    try {
+                        const res = await fetch('http://localhost:6001/absences');
+                        if (res.ok) {
+                            attendanceData = await res.json();
+                        }
+                    } catch (e) {
+                        attendanceData = [];
+                    }
+
+                    const now = new Date();
+                    const currentMonth = now.getMonth();
+                    const currentYear = now.getFullYear();
+                    let missedHours = 0;
+                    let missedLessons = 0;
+                    let excusedHours = 0;
+                    let sickHours = 0;
+                    let lateHours = 0;
+                    let absentOnlyHours = 0;
+
+                    attendanceData.forEach(row => {
+                        const date = new Date(row.date);
+                        if (
+                            (row.student === user.username || row.student === user.fullName) &&
+                            date.getMonth() === currentMonth &&
+                            date.getFullYear() === currentYear
+                        ) {
+                            if (row.status === 'Отсутствовал') {
+                                missedHours += 2;
+                                missedLessons += 1;
+                                absentOnlyHours += 2;
+                            }
+                            if (row.status === 'Уважительная причина') {
+                                excusedHours += 2;
+                                missedHours += 2;
+                                missedLessons += 1;
+                            }
+                            if (row.status === 'Больничный') {
+                                sickHours += 2;
+                                missedHours += 2;
+                                missedLessons += 1;
+                            }
+                            if (row.status === 'Опоздал') {
+                                lateHours += 1;
+                            }
+                        }
+                    });
+                    document.getElementById('absentHours').textContent = missedHours + lateHours;
+                    document.getElementById('absentLessons').textContent = missedLessons;
+                    document.getElementById('excusedHours').textContent = excusedHours;
+                    document.getElementById('sickHours').textContent = sickHours;
+                    document.getElementById('lateHours').textContent = lateHours;
+                    document.getElementById('absentOnlyHours').textContent = absentOnlyHours;
+                }
+
+                // Первый вызов при загрузке
+                await updateAttendanceBlock();
+
+                // Проверка каждый час (можно чаще, например, раз в 10 минут)
+                setInterval(updateAttendanceBlock, 1 * 60 * 1000);
+            }
+        });
+
+        /*
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            if (
+                user &&
+                (
+                    (user.roleName && user.roleName.toLowerCase() === 'администратор') ||
+                    (user.role && user.role.toLowerCase() === 'администратор')
+                )
+            ) {
+                const adminLink = document.getElementById('adminLink');
+                if (adminLink) adminLink.style.display = 'block';
+            }
+        });
+        */
+
+        function updateClock() {
+          const now = new Date();
+          const date = now.toLocaleDateString('ru-RU');
+          const time = now.toLocaleTimeString('ru-RU', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+          });
+
+          document.getElementById('date').textContent = date;
+          document.getElementById('time').textContent = time;
+        }
+
+        updateClock();
+        setInterval(updateClock, 1000);
+
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        if (user && user.avatar) {
+            document.getElementById('mainUserAvatar').src = user.avatar;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleBtn = document.getElementById('sidebarToggle');
+            const topbarLinks = document.getElementById('topbarLinks');
+            if (toggleBtn && topbarLinks) {
+                toggleBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    topbarLinks.classList.toggle('open');
+                });
+                document.addEventListener('click', function(e) {
+                    if (
+                        topbarLinks.classList.contains('open') &&
+                        !topbarLinks.contains(e.target) &&
+                        !toggleBtn.contains(e.target)
+                    ) {
+                        topbarLinks.classList.remove('open');
+                    }
+                });
+            }
+        });
+
+        function updateOnlineStatus() {
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    if (!user) return;
+    let onlineUsers = JSON.parse(localStorage.getItem('onlineUsers')) || [];
+    const idx = onlineUsers.findIndex(u => u.username === user.username);
+    if (idx !== -1) {
+        onlineUsers[idx].lastActive = Date.now();
+    } else {
+        onlineUsers.push({ username: user.username, lastActive: Date.now() });
+    }
+    localStorage.setItem('onlineUsers', JSON.stringify(onlineUsers));
+}
+setInterval(updateOnlineStatus, 30000); // обновлять каждые 30 секунд
+updateOnlineStatus();
+
+    // Проверка, был ли пользователь отключён администратором
+    function checkKicked() {
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        if (!user) return;
+        const onlineUsers = JSON.parse(localStorage.getItem('onlineUsers')) || [];
+        const isOnline = onlineUsers.some(u => u.username === user.username);
+        if (!isOnline) {
+            alert('Вы были отключены администратором!');
+            localStorage.removeItem('currentUser');
+            window.location.href = 'login.html';
+        }
+    }
+    setInterval(checkKicked, 5000);
+    checkKicked();
+
+    // --- To-Do задачи для старосты, зама, куратора, админа ---
+function hasTaskAccess(user) {
+    if (!user) return false;
+    const allowedRoles = ['headman', 'deputy_headman', 'curator', 'admin', 'администратор', 'Староста', 'Зам старосты', 'Куратор', 'Администратор'];
+    // Проверяем roleName и role
+    return allowedRoles.includes((user.roleName || '').toLowerCase()) ||
+           allowedRoles.includes((user.role || '').toLowerCase());
+}
+
+function renderTasks(tasks, user) {
+    const tasksList = document.getElementById('tasksList');
+    tasksList.innerHTML = '';
+    // Для админа показываем все задачи, для остальных — только свои
+    const isAdmin = (user.roleName && user.roleName.toLowerCase().includes('админ')) ||
+                    (user.role && user.role.toLowerCase().includes('админ'));
+    tasks
+      .filter(t => isAdmin || t.author === user.username)
+      .forEach((task, idx) => {
+        const li = document.createElement('li');
+        li.textContent = `${task.text} (${task.authorDisplay || task.author})`;
+        // Кнопка удаления только для автора задачи или админа
+        if (isAdmin || task.author === user.username) {
+            const delBtn = document.createElement('button');
+            delBtn.textContent = 'Удалить';
+            delBtn.style.marginLeft = '12px';
+            delBtn.style.padding = '2px 10px';
+            delBtn.style.fontSize = '12px';
+            delBtn.onclick = function() {
+                const tasks = getTasks();
+                // Находим индекс задачи по времени создания и автору
+                const delIdx = tasks.findIndex(t => t.created === task.created && t.author === task.author);
+                if (delIdx !== -1) {
+                    tasks.splice(delIdx, 1);
+                    saveTasks(tasks);
+                    renderTasks(tasks, user);
+                }
+            };
+            li.appendChild(delBtn);
+        }
+        tasksList.appendChild(li);
+      });
+}
+
+function getTasks() {
+    return JSON.parse(localStorage.getItem('tasksList')) || [];
+}
+
+function saveTasks(tasks) {
+    localStorage.setItem('tasksList', JSON.stringify(tasks));
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    if (!user) return;
+    if (hasTaskAccess(user)) {
+        document.getElementById('tasksBlock').style.display = '';
+        renderTasks(getTasks(), user);
+        document.getElementById('addTaskBtn').style.display = '';
+    }
+
+    // Открытие модального окна
+    document.getElementById('addTaskBtn').onclick = function() {
+        document.getElementById('taskModal').style.display = 'flex';
+        document.getElementById('taskInput').value = '';
+        document.getElementById('taskInput').focus();
+    };
+    // Закрытие модального окна
+    document.getElementById('cancelTaskBtn').onclick = function() {
+        document.getElementById('taskModal').style.display = 'none';
+    };
+    // Сохранение задачи
+    document.getElementById('saveTaskBtn').onclick = function() {
+        const text = document.getElementById('taskInput').value.trim();
+        if (!text) return;
+        const tasks = getTasks();
+        tasks.push({
+            text,
+            author: user.username,
+            authorDisplay: user.fullName || user.username,
+            created: Date.now()
+        });
+        saveTasks(tasks);
+        renderTasks(tasks, user);
+        document.getElementById('taskModal').style.display = 'none';
+    };
+});
+    </script>
+</body>
+</html>

@@ -1,0 +1,677 @@
+/* Цветовые переменные */
+:root {
+    --main-bg: #181B20;
+    --main-bg-light: #23262C;
+    --accent: #27ae60;
+    --accent-hover: #219150;
+    --sidebar-bg: #1b1e24;
+    --sidebar-active: #23262C;
+    --sidebar-text: #b8bfc9;
+    --danger: #e74c3c;
+    --danger-hover: #c0392b;
+    --white: #fff;
+    --shadow: 0 4px 24px 0 #0002;
+}
+
+/* Общие стили */
+body {
+    background: linear-gradient(120deg, var(--main-bg) 80%, var(--main-bg-light) 100%);
+    color: var(--white);
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+    min-height: 100vh;
+}
+
+body, .info-block, .attendance-block, .user-info, .attendance, .notifications-block {
+    font-family: 'Montserrat', Arial, sans-serif !important;
+    font-weight: 400;
+    color: #f5f5f5;
+}
+
+.container {
+    background: var(--main-bg-light);
+    color: var(--white);
+    padding: 32px 28px;
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    max-width: 1200px; /* было 420px */
+    margin: 80px auto 0 auto;
+    text-align: center;
+    transition: box-shadow 0.3s;
+}
+
+.container:hover {
+    box-shadow: 0 8px 32px 0 #27ae6011;
+}
+
+h2, h3 {
+    color: var(--accent);
+    margin-bottom: 20px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.info-block h2, .info-block h3, .attendance-block h3 {
+    font-family: 'Montserrat', Arial, sans-serif !important;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.02em;
+}
+
+input[type="text"],
+input[type="password"],
+select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #333;
+    border-radius: 8px;
+    background: #23262C;
+    color: var(--white);
+    font-size: 1rem;
+    margin-bottom: 10px;
+    transition: border 0.2s;
+}
+
+input:focus, select:focus {
+    border: 1.5px solid var(--accent);
+    outline: none;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    background: var(--accent);
+    color: var(--white);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: 600;
+    transition: background 0.3s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px 0 #27ae6022;
+}
+
+button:hover {
+    background: var(--accent-hover);
+    box-shadow: 0 4px 16px 0 #27ae6022;
+}
+
+p a {
+    color: var(--accent);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+p a:hover {
+    color: #ffd700;
+    text-decoration: underline;
+}
+
+/* Sidebar */
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 220px;
+    height: 100vh;
+    background: #23272f;
+    color: #fff;
+    box-shadow: 2px 0 8px rgba(0,0,0,0.08);
+    transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+    z-index: 100;
+    overflow-y: auto;
+    transform: translateX(-100%);
+}
+.sidebar.open {
+    transform: translateX(0);
+}
+.main-wrapper {
+    margin-left: 0;
+    transition: margin-left 0.3s;
+}
+.sidebar.open ~ .main-wrapper {
+    margin-left: 220px;
+}
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    padding: 14px 18px;
+    color: #fff;
+    text-decoration: none;
+    border-left: 3px solid transparent;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.sidebar-link.active, .sidebar-link:hover {
+    background: #2fa85a;
+    border-left: 3px solid #36d46c;
+    color: #fff;
+}
+
+.sidebar-icon {
+    margin-right: 10px;
+}
+
+.sidebar-settings, .sidebar-logout {
+    margin-top: 18px;
+    border-top: 1px solid #333;
+    padding-top: 10px;
+}
+
+.sidebar-toggle {
+    display: block;
+    position: fixed;
+    top: 18px;
+    left: 18px;
+    z-index: 200;
+    background: #23272f;
+    color: #36d46c;
+    border: none;
+    font-size: 18px;      /* уменьшено с 28px */
+    border-radius: 6px;
+    padding: 4px 7px;     /* уменьшено */
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.sidebar-toggle:hover {
+    background: #2fa85a;
+    color: #fff;
+}
+
+@media (max-width: 900px) {
+    .sidebar {
+        transform: translateX(-100%);
+    }
+    .sidebar.open {
+        transform: translateX(0);
+    }
+    .sidebar-toggle {
+        display: block;
+    }
+    .main-wrapper {
+        margin-left: 0 !important;
+    }
+}
+
+
+
+/* Новый layout для админки */
+.admin-layout {
+    display: flex;
+    min-height: 100vh;
+    background: linear-gradient(120deg, var(--main-bg) 80%, var(--main-bg-light) 100%);
+}
+
+.admin-sidebar {
+    width: 260px;
+    background: var(--sidebar-bg);
+    color: var(--sidebar-text);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 40px 24px 24px 24px;
+    box-shadow: 2px 0 24px 0 #0005;
+}
+
+.sidebar-logo h2 {
+    color: var(--accent);
+    margin: 0 0 8px 0;
+    font-size: 2em;
+    letter-spacing: 0.04em;
+}
+
+.sidebar-nav {
+    margin-top: 40px;
+    width: 100%;
+}
+.sidebar-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.sidebar-nav li {
+    margin-bottom: 18px;
+}
+.sidebar-nav a {
+    color: var(--sidebar-text);
+    text-decoration: none;
+    font-size: 1.1em;
+    transition: color 0.2s;
+    padding: 6px 0;
+    display: block;
+    border-radius: 8px;
+}
+.sidebar-nav a.active,
+.sidebar-nav a:hover {
+    color: var(--accent);
+    background: var(--sidebar-active);
+    padding-left: 8px;
+}
+
+.sidebar-footer {
+    margin-top: auto;
+    width: 100%;
+}
+.logout-link {
+    color: var(--danger);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1.1em;
+    transition: color 0.2s;
+}
+.logout-link:hover {
+    color: var(--white);
+    background: var(--danger);
+    border-radius: 8px;
+    padding-left: 8px;
+}
+
+/* Основной контент */
+.main-wrapper {
+    margin-left: 0 !important;
+    padding: 44px 40px 40px 40px;
+    min-height: 100vh;
+    display: flex;
+    flex-wrap: wrap;         /* добавлено для переноса */
+    gap: 32px;               /* увеличен отступ между блоками */
+    background: linear-gradient(120deg, var(--main-bg) 80%, var(--main-bg-light) 100%);
+    align-items: flex-start;
+    justify-content: flex-start; /* выравнивание по левому краю */
+}
+
+.info-block,
+.attendance-block,
+.notifications-block,
+.datetime-block,
+.calendar-block {
+    flex: 1 1 320px;         /* гибкая ширина, минимум 320px */
+    min-width: 280px;
+    max-width: 420px;
+    background: var(--main-bg-light);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    padding: 28px 24px;
+    margin-bottom: 0;
+    text-align: left;
+}
+
+.notifications-block,
+.datetime-block,
+.calendar-block {
+    min-height: 120px;
+}
+
+@media (max-width: 900px) {
+    .main-wrapper {
+        flex-direction: column;
+        padding: 24px 10px 10px 10px;
+        gap: 20px;
+        margin-left: 70px;
+    }
+    .info-block,
+    .attendance-block,
+    .notifications-block,
+    .datetime-block,
+    .calendar-block {
+        max-width: 100%;
+        min-width: 0;
+    }
+}
+
+/* Таблицы */
+.attendance-table, .grades table {
+    margin-top: 20px;
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--main-bg);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.attendance-table th, .grades th,
+.attendance-table td, .grades td {
+    border: 1px solid #23262C;
+    padding: 12px;
+    text-align: left;
+}
+
+.attendance-table th, .grades th {
+    background-color: #23262C;
+    color: var(--accent);
+    font-weight: bold;
+}
+
+.attendance-table tr:nth-child(even), .grades tr:nth-child(even) {
+    background-color: #23262C;
+}
+
+.attendance-table tr:hover, .grades tr:hover {
+    background-color: #222;
+}
+
+.status-present {
+    color: #2ecc40;
+    font-weight: bold;
+}
+
+.status-absent {
+    color: #e74c3c;
+    font-weight: bold;
+}
+
+/* Форма добавления строки */
+.add-row-form {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.add-row-form input, .add-row-form select {
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #333;
+    background: #23262C;
+    color: var(--white);
+}
+
+.add-row-form button {
+    padding: 8px 18px;
+    border-radius: 6px;
+    background: var(--accent);
+    color: var(--white);
+    border: none;
+    transition: background 0.2s;
+}
+
+.add-row-form button:hover {
+    background: var(--accent-hover);
+}
+
+/* Уведомления */
+.notifications-block {
+    background: #111110;
+    border: 1px solid #ffe58f;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 20px;
+    font-size: 13px; /* уменьшенный размер шрифта */
+}
+.notifications-block h3 {
+    margin-top: 0;
+    font-size: 15px; /* уменьшенный заголовок */
+}
+.notifications-block ul {
+    padding-left: 16px;
+    margin: 0;
+}
+.notifications-block li {
+    margin-bottom: 4px;
+    font-size: 13px; /* уменьшенный размер шрифта */
+}
+#goToNotificationsBtn {
+    font-size: 13px;
+    padding: 4px 10px;
+}
+
+/* Убрать любые обводки и подчеркивания у текста */
+h1, h2, h3, h4, h5, h6, p, span, div, .user-info, .attendance-block, .info-block {
+    text-shadow: none !important;
+    text-decoration: none !important;
+    -webkit-text-stroke: 0 !important;
+    border: none !important;
+}
+a, a:visited, a:hover, a:active {
+    text-decoration: none !important;
+}
+
+/* --- Topbar (горизонтальное меню) --- */
+.topbar {
+    width: 100%;
+    background: #23272f;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    height: 56px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.topbar-links {
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    margin-left: 16px;
+}
+.topbar .sidebar-link,
+.topbar .logout-btn {
+    display: flex;
+    align-items: center;
+    padding: 8px 14px;
+    color: #fff;
+    background: none;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    text-decoration: none;
+    margin: 0 2px;
+}
+.topbar .sidebar-link.active,
+.topbar .sidebar-link:hover,
+.topbar .logout-btn:hover {
+    background: #2fa85a;
+    color: #fff;
+}
+.topbar .sidebar-icon {
+    margin-right: 6px;
+    font-size: 16px;
+}
+.topbar .sidebar-label,
+.topbar .settings-label,
+.topbar .logout-label {
+    font-size: 12px;
+}
+.sidebar-toggle {
+    display: none !important; /* Скрываем бургер на всех экранах */
+}
+body {
+    padding-top: 56px; /* чтобы контент не был под меню */
+}
+@media (max-width: 900px) {
+    .topbar-links {
+        display: none;
+        flex-direction: column;
+        position: absolute;
+        top: 56px;
+        left: 0;
+        width: 100%;
+        background: #23272f;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        z-index: 101;
+    }
+    .topbar-links.open {
+        display: flex;
+    }
+    .sidebar-toggle {
+        display: block;
+        background: none;
+        border: none;
+        color: #36d46c;
+        font-size: 22px;
+        margin-right: 8px;
+        cursor: pointer;
+    }
+}
+
+/* Адаптивность */
+@media (max-width: 900px) {
+    .main-wrapper {
+        flex-direction: column;
+        padding: 24px 10px 10px 10px;
+        gap: 20px;
+    }
+    .info-block, .attendance-block {
+        max-width: 100%;
+        margin-left: 0;
+    }
+    .sidebar {
+        width: 70px;
+    }
+    .main-wrapper {
+        margin-left: 70px;
+    }
+    .admin-layout {
+        flex-direction: column;
+    }
+    .admin-sidebar {
+        width: 100%;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 10px;
+        box-shadow: none;
+    }
+    .sidebar-logo, .sidebar-footer {
+        display: none;
+    }
+    .sidebar-nav {
+        margin: 0;
+    }
+    .admin-main {
+        padding: 18px 6px;
+        max-width: 100%;
+    }
+    .admin-columns {
+        flex-direction: column;
+    }
+    .admin-left, .admin-right {
+        min-width: 100%;
+    }
+}
+
+.admin-columns {
+    display: flex;
+    gap: 32px;
+    align-items: flex-start;
+}
+
+.admin-left, .admin-right {
+    flex: 1 1 0;
+    min-width: 320px;
+}
+
+.admin-section {
+    background: #acaeab;
+    border-radius: 8px;
+    padding: 18px 16px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.admin-section h3,
+.admin-section h4 {
+    color: #23262C;
+}
+
+/* Для мобильных устройств — столбцы в столбик */
+@media (max-width: 900px) {
+    .admin-columns {
+        flex-direction: column;
+        gap: 0;
+    }
+    .admin-left, .admin-right {
+        min-width: 0;
+    }
+}
+
+.datetime-block {
+    position: fixed;
+    top: 24px;
+    right: 32px;
+    z-index: 300;
+    background: var(--main-bg-light);
+    color: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 4px 24px 0 #0005;
+    padding: 18px 28px 18px 28px;
+    min-width: 180px;
+    max-width: 260px;
+    width: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+.datetime-block #currentDate {
+    font-size: 1.1em;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+.datetime-block #currentTime {
+    font-size: 2em;
+    font-weight: bold;
+    letter-spacing: 0.04em;
+    margin-top: 6px;
+}
+.datetime-block .btn {
+    margin-top: 12px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    background: var(--accent);
+    color: var(--white);
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.datetime-block .btn:hover {
+    background: var(--accent-hover);
+}
+
+.clock-container {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  text-align: right;
+  font-family: 'Arial', sans-serif;
+  color: white;
+  z-index: 1000;
+}
+
+.clock-container .date {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.clock-container .time {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.clock-box {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 140px;
+  height: 70px;
+  background: transparent;
+  color: white;
+  text-align: center;
+  font-family: 'Arial', sans-serif;
+  font-weight: bold;
+  font-size: 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  z-index: 999;
+  border-radius: 8px;
+  pointer-events: none; /* чтобы не мешал клику */
+}
