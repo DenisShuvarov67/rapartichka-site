@@ -156,7 +156,7 @@ document.getElementById('loginForm').onsubmit = async function(e) {
     adminLoginBtn.disabled = true;
 
     async function tryLogin(forceFlag = false) {
-        const res = await fetch(https://rapartichka-site.onrender.com'/login.html, {
+        const res = await fetch('https://rapartichka-site.onrender.com/login.html', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password, force: forceFlag })
