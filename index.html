@@ -105,7 +105,12 @@
     </style>
 </head>
 <body>
-   
+   <script>
+    const userStr = localStorage.getItem('currentUser');
+    if (!userStr) {
+      window.location.href = 'login.html';
+    }
+  </script>
     <div class="clock-box">
       <div>
         <div id="date"></div>
