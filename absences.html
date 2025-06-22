@@ -197,7 +197,7 @@
     async function deleteAbsence(index, month) {
         if (!confirm('Удалить эту запись?')) return;
         try {
-            const res = await fetch('http://localhost:6001/absences', { method: 'GET' });
+            const res = await fetch('https://rapartichka-site.onrender.com/absences', { method: 'GET' });
             if (!res.ok) throw new Error('Ошибка загрузки данных');
             let data = await res.json();
 
@@ -213,7 +213,7 @@
             if (!toDelete) return;
 
             // Отправляем запрос на удаление
-            const delRes = await fetch('http://localhost:6001/absences', {
+            const delRes = await fetch('https://rapartichka-site.onrender.com/absences', {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(toDelete)
@@ -310,7 +310,7 @@
 
     async function loadAbsences() {
         try {
-            const res = await fetch('http://localhost:6001/absences');
+            const res = await fetch('https://rapartichka-site.onrender.com/absences');
             if (!res.ok) throw new Error('Ошибка загрузки данных');
             const data = await res.json();
 
@@ -408,7 +408,7 @@
             if (!toDelete) return;
 
             // Отправляем запрос на удаление
-            const delRes = await fetch('http://localhost:6001/absences', {
+            const delRes = await fetch('https://rapartichka-site.onrender.com/absences', {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(toDelete)
