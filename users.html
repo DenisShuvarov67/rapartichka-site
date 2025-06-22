@@ -103,7 +103,7 @@
 
         // Получаем пользователей с сервера
         function loadUsers() {
-            fetch('http://localhost:6001/users')
+            fetch('https://rapartichka-site.onrender.com/users')
                 .then(res => res.json())
                 .then(users => renderUsers(users))
                 .catch(() => {
@@ -114,7 +114,7 @@
         // Удаление пользователя (отправка на сервер)
         function deleteUser(username) {
             if (confirm('Вы уверены, что хотите удалить этого пользователя?')) {
-                fetch('http://localhost:6001/users/' + encodeURIComponent(username), {
+                fetch('https://rapartichka-site.onrender.com/users/' + encodeURIComponent(username), {
                     method: 'DELETE'
                 })
                 .then(res => res.json())
