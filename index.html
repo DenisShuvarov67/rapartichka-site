@@ -175,7 +175,7 @@
             const currentUser = JSON.parse(localStorage.getItem('currentUser'));
             let user = currentUser;
             try {
-                const res = await fetch('http://localhost:6001/users');
+                const res = await fetch('https://rapartichka-site.onrender.com/users');
                 if (res.ok) {
                     const users = await res.json();
                     const found = users.find(u => u.username === currentUser.username);
