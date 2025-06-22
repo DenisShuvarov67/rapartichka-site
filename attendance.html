@@ -39,7 +39,7 @@
             const form = e.target;
             const data = Object.fromEntries(new FormData(form));
             try {
-                const res = await fetch('http://localhost:6001/attendance', {
+                const res = await fetch('https://rapartichka-site.onrender.com/attendance', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
