@@ -1,13 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <script>
-  // Проверяем наличие залогиненного пользователя
-  const user = localStorage.getItem('currentUser');
-  if (!user) {
-    window.location.href = 'login.html';
-  }
-</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Главная страница</title>
@@ -15,6 +8,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      // Проверяем наличие залогиненного пользователя
+      const user = localStorage.getItem('currentUser');
+      if (!user) {
+        window.location.href = 'login.html';
+  }
+</script>
     <style>
         /* Уменьшаем шрифт для пунктов меню в сайдбаре */
         .sidebar-link, .sidebar-settings .sidebar-link, .sidebar-logout .logout-btn {
