@@ -225,7 +225,7 @@
                 async function updateAttendanceBlock() {
                     let attendanceData = [];
                     try {
-                        const res = await fetch('http://localhost:6001/absences');
+                        const res = await fetch('https://rapartichka-site.onrender.com/absences');
                         if (res.ok) {
                             attendanceData = await res.json();
                         }
