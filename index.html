@@ -105,7 +105,12 @@
     </style>
 </head>
 <body>
-   
+   <script>
+    const userStr = localStorage.getItem('currentUser');
+    if (!userStr) {
+      window.location.href = 'login.html';
+    }
+  </script>
     <div class="clock-box">
       <div>
         <div id="date"></div>
@@ -225,7 +230,12 @@
             const currentUser = JSON.parse(localStorage.getItem('currentUser'));
             let user = currentUser;
             try {
-                const res = await fetch('https://rapartichka-site.onrender.com/users');
+                const token = localStorage.getItem('authToken'); // или как у вас называется токен
+const res = await fetch('https://rapartichka-site.onrender.com/users', {
+  headers: {
+    'Authorization': `Bearer ${token}`
+  }
+});
                 if (res.ok) {
                     const users = await res.json();
                     const found = users.find(u => u.username === currentUser.username);
