@@ -675,33 +675,3 @@ body {
   border-radius: 8px;
   pointer-events: none; /* чтобы не мешал клику */
 }
-
-/* Скрываем меню по умолчанию */
-.topbar .topbar-links {
-  display: none;
-  flex-direction: column;
-  position: absolute;
-  top: 56px;
-  right: 0;
-  background: #fff;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-  z-index: 100;
-  min-width: 220px;
-  border-radius: 0 0 8px 8px;
-  padding: 12px 0;
-}
-
-/* Показываем меню, если есть класс open */
-.topbar .topbar-links.open {
-  display: flex;
-}
-
-/* Для больших экранов — меню тоже скрыто, открывается по бургеру */
-@media (min-width: 900px) {
-  .topbar .topbar-links {
-    right: 40px;
-    top: 64px;
-    min-width: 260px;
-  }
-}
-
