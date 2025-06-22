@@ -1,12 +1,21 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta http-equiv="refresh" content="0; url=login.html" />
-    <title>Redirecting...</title>
-  </head>
-  <body>
-    <p>Redirecting to <a href="login.html">login.html</a>...</p>
-  </body>
+    <meta charset="UTF-8">
+    <title>Главная — Index</title>
+    <script>
+        // Проверяем, есть ли пользователь в localStorage
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = localStorage.getItem('currentUser');
+            if (!user) {
+                // Если не авторизован — отправляем на login.html
+                window.location.href = 'login.html';
+            }
+            // Если user найден — ничего не делаем, человек остаётся на index.html
+        });
+    </script>
+</head>
+<body>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Главная страница</title>
