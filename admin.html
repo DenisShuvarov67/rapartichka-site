@@ -382,7 +382,7 @@ function registerUser() {
         return;
     }
 
-    fetch('http://localhost:6001/register', {
+    fetch('https://rapartichka-site.onrender.com/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -529,7 +529,7 @@ function registerUser() {
 
                     let success = 0, fail = 0;
                     let promises = users.map(u => {
-                        return fetch('http://localhost:6001/register', {
+                        return fetch('https://rapartichka-site.onrender.com/register', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
