@@ -169,28 +169,39 @@
     <script>
         function searchUserForAdmin() {
             const username = document.getElementById('adminUsernameSearch').value.trim();
-            const users = JSON.parse(localStorage.getItem('users')) || [];
-            const user = users.find(u => u.username === username);
-
             const infoDiv = document.getElementById('userInfoForAdmin');
             const blockControls = document.getElementById('blockUserControls');
             const blockMsg = document.getElementById('blockUserMsg');
             blockMsg.textContent = '';
 
-            if (!user) {
-                infoDiv.innerHTML = '<span style="color:red;">Пользователь не найден.</span>';
+            if (!username) {
+                infoDiv.innerHTML = '<span style="color:red;">Введите имя пользователя.</span>';
                 blockControls.style.display = 'none';
                 return;
             }
-            infoDiv.innerHTML = `
-                <b>Имя пользователя:</b> ${user.username}<br>
-                <b>Роль:</b> ${user.roleName || user.role || '-'}<br>
-                <b>Имя:</b> ${user.firstName || '-'}<br>
-                <b>Фамилия:</b> ${user.lastName || '-'}<br>
-                <b>Статус:</b> ${user.blockedUntil && Date.now() < user.blockedUntil ? `<span style="color:red;">Заблокирован до ${new Date(user.blockedUntil).toLocaleString()}</span>` : '<span style="color:green;">Активен</span>'}
-            `;
-            blockControls.style.display = '';
-            blockControls.dataset.username = user.username;
+
+            fetch('https://rapartichka-site.onrender.com/users')
+                .then(res => res.json())
+                .then(users => {
+                    const user = users.find(u => u.username === username);
+                    if (!user) {
+                        infoDiv.innerHTML = '<span style="color:red;">Пользователь не найден.</span>';
+                        blockControls.style.display = 'none';
+                        return;
+                    }
+                    infoDiv.innerHTML = `
+                        <b>Имя пользователя:</b> ${user.username}<br>
+                        <b>Роль:</b> ${user.roleName || user.role || '-'}<br>
+                        <b>ФИО:</b> ${user.fullName || '-'}<br>
+                        <b>Статус:</b> ${user.blockedUntil && Date.now() < user.blockedUntil ? `<span style="color:red;">Заблокирован до ${new Date(user.blockedUntil).toLocaleString()}</span>` : '<span style="color:green;">Активен</span>'}
+                    `;
+                    blockControls.style.display = '';
+                    blockControls.dataset.username = user.username;
+                })
+                .catch(() => {
+                    infoDiv.innerHTML = '<span style="color:red;">Ошибка соединения с сервером.</span>';
+                    blockControls.style.display = 'none';
+                });
         }
 
         function changeUserPassword() {
@@ -312,21 +323,36 @@ function renderPendingUsers() {
 // Подтверждение пользователя
 function approveUser(index) {
     let pendingUsers = JSON.parse(localStorage.getItem('pendingUsers')) || [];
-    let users = JSON.parse(localStorage.getItem('users')) || [];
     const user = pendingUsers[index];
-    // Добавляем в основной список пользователей
-    users.push({
-        username: user.username,
-        role: user.role,
-        roleName: user.roleName,
-        approved: true
-    });
-    localStorage.setItem('users', JSON.stringify(users));
-    // Удаляем из pendingUsers
-    pendingUsers.splice(index, 1);
-    localStorage.setItem('pendingUsers', JSON.stringify(pendingUsers));
-    renderPendingUsers();
-    alert('Пользователь подтверждён!');
+    if (!user) return;
+
+    fetch('https://rapartichka-site.onrender.com/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            username: user.username,
+            fullName: user.fullName || user.username,
+            password: user.password || '123456',
+            role: user.role || 'student',
+            roleName: user.roleName || 'Студент',
+            avatar: '',
+            additionalRoles: [],
+            approved: true
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            // Удаляем из pendingUsers
+            pendingUsers.splice(index, 1);
+            localStorage.setItem('pendingUsers', JSON.stringify(pendingUsers));
+            renderPendingUsers();
+            alert('Пользователь подтверждён!');
+        } else {
+            alert(data.error || 'Ошибка подтверждения');
+        }
+    })
+    .catch(() => alert('Ошибка соединения с сервером'));
 }
 
 // Отклонение заявки
