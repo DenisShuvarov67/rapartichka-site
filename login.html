@@ -195,6 +195,17 @@ document.getElementById('loginForm').onsubmit = async function(e) {
     tryLogin();
 };
 
+// Пример проверки блокировки при входе
+function loginUser(username, password) {
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+    const user = users.find(u => u.username === username);
+    if (user && user.blockedUntil && Date.now() < user.blockedUntil) {
+        alert(`Пользователь заблокирован до ${new Date(user.blockedUntil).toLocaleString()}`);
+        return;
+    }
+    // ...дальше обычная логика входа...
+}
+
 // Кнопка "Войти как администратор"
 adminLoginBtn.onclick = function() {
     window.location.href = 'admin.html';

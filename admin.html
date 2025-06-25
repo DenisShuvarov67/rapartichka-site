@@ -40,6 +40,12 @@
                         <input type="text" id="adminUsernameSearch" name="adminUsernameSearch">
                         <button onclick="searchUserForAdmin()">Найти пользователя</button>
                         <div id="userInfoForAdmin"></div>
+                        <div id="blockUserControls" style="display:none; margin-top:10px;">
+                            <label for="blockMinutes">Блокировать на (мин):</label>
+                            <input type="number" id="blockMinutes" min="1" max="1440" value="30" style="width:60px;">
+                            <button onclick="blockUser()">Заблокировать</button>
+                            <span id="blockUserMsg" style="margin-left:10px;color:green;"></span>
+                        </div>
                     </div>
                     <div class="admin-section">
                         <h4>Изменение пароля пользователя</h4>
@@ -167,18 +173,24 @@
             const user = users.find(u => u.username === username);
 
             const infoDiv = document.getElementById('userInfoForAdmin');
+            const blockControls = document.getElementById('blockUserControls');
+            const blockMsg = document.getElementById('blockUserMsg');
+            blockMsg.textContent = '';
+
             if (!user) {
                 infoDiv.innerHTML = '<span style="color:red;">Пользователь не найден.</span>';
+                blockControls.style.display = 'none';
                 return;
             }
             infoDiv.innerHTML = `
                 <b>Имя пользователя:</b> ${user.username}<br>
                 <b>Роль:</b> ${user.roleName || user.role || '-'}<br>
                 <b>Имя:</b> ${user.firstName || '-'}<br>
-                <b>Фамилия:</b> ${user.lastName || '-'}
+                <b>Фамилия:</b> ${user.lastName || '-'}<br>
+                <b>Статус:</b> ${user.blockedUntil && Date.now() < user.blockedUntil ? `<span style="color:red;">Заблокирован до ${new Date(user.blockedUntil).toLocaleString()}</span>` : '<span style="color:green;">Активен</span>'}
             `;
-            // Автоматически подставляем имя пользователя в поле для смены пароля
-            document.getElementById('changePasswordUsername').value = user.username;
+            blockControls.style.display = '';
+            blockControls.dataset.username = user.username;
         }
 
         function changeUserPassword() {
