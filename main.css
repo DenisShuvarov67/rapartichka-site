@@ -159,7 +159,6 @@ p a:hover {
 }
 
 .sidebar-toggle {
-    display: block;
     position: fixed;
     top: 18px;
     left: 18px;
@@ -486,11 +485,25 @@ a, a:visited, a:hover, a:active {
     font-size: 12px;
 }
 .sidebar-toggle {
-    display: none !important; /* Скрываем бургер на всех экранах */
+    position: fixed;
+    top: 18px;
+    left: 18px;
+    z-index: 200;
+    background: #23272f;
+    color: #36d46c;
+    border: none;
+    font-size: 18px;
+    border-radius: 6px;
+    padding: 4px 7px;
+    cursor: pointer;
+    transition: background 0.2s;
 }
-body {
-    padding-top: 56px; /* чтобы контент не был под меню */
+
+.sidebar-toggle:hover {
+    background: #2fa85a;
+    color: #fff;
 }
+
 @media (max-width: 900px) {
     .topbar-links {
         display: none;
