@@ -8,29 +8,62 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        
-    </style>
 </head>
 <body>
-   <script>
-    const userStr = localStorage.getItem('currentUser');
-    if (!userStr) {
-      window.location.href = 'login.html';
-    }
-  </script>
-    <div class="clock-box">
-      <div>
-        <div id="date"></div>
-        <div id="time"></div>
-      </div>
-    </div>
-            <h2>
+    <!-- Кнопка-бургер (видна только на мобильных) -->
+    <button class="sidebar-toggle" id="sidebarToggleBtn" aria-label="Открыть меню">
+        <span style="font-size: 2em;">&#9776;</span>
+    </button>
 
+    <!-- Сайдбар -->
+    <nav class="sidebar" id="sidebar">
+        <a href="index.html" class="sidebar-link active" title="Главная">
+            <span class="sidebar-icon"><i class="fas fa-home"></i></span>
+            <span class="sidebar-label">Главная</span>
+        </a>
+        <a href="attendance.html" class="sidebar-link" title="Отметить явку">
+            <span class="sidebar-icon"><i class="fas fa-user-check"></i></span>
+            <span class="sidebar-label">Явка</span>
+        </a>
+        <a href="absences.html" class="sidebar-link" title="Явка за месяц">
+            <span class="sidebar-icon"><i class="fas fa-chart-bar"></i></span>
+            <span class="sidebar-label">Явка за месяц</span>
+        </a>
+        <a href="students.html" class="sidebar-link" title="Панель старосты и его зама">
+            <span class="sidebar-icon"><i class="fas fa-user-graduate"></i></span>
+            <span class="sidebar-label">Панель старосты и его зама</span>
+        </a>
+        <a href="https://t.me/+rkj_U8Ou3uYyMzNi" class="sidebar-link" title="Чат в Telegram" target="_blank" rel="noopener">
+            <span class="sidebar-icon"><i class="fab fa-telegram-plane"></i></span>
+            <span class="sidebar-label">Telegram чат</span>
+        </a>
+        <a id="adminLink" href="admin.html" class="sidebar-link">
+            <span class="sidebar-icon"><i class="fas fa-user-shield"></i></span>
+            <span class="sidebar-label">Админ<br>панель</span>
+        </a>
+        <a href="settings.html" class="sidebar-link" title="Настройки">
+            <span class="sidebar-icon"><i class="fas fa-cog"></i></span>
+            <span class="sidebar-label settings-label">Настройки</span>
+        </a>
+        <button class="logout-btn" onclick="window.location.href='login.html'">
+            <span class="sidebar-icon"><i class="fas fa-sign-out-alt"></i></span>
+            <span class="logout-label">Выйти</span>
+        </button>
+    </nav>
+
+    <!-- Основной контент -->
+    <div class="main-wrapper" id="mainWrapper">
+        <div class="container">
+            <div class="clock-box">
+                <div>
+                    <div id="date"></div>
+                    <div id="time"></div>
+                </div>
+            </div>
+            <h2>
                 <img id="mainUserAvatar" src="img/default-avatar.png" alt="Аватар" style="width:64px;height:78px;border-radius:50%;vertical-align:middle;margin-right:10px;object-fit:cover;">
                 Добро пожаловать, <span id="userName">Пользователь</span>!
             </h2>
-            
             <div class="user-info">
                 <h3>Ваша информация</h3>
                 <p>Имя пользователя: <span id="userNameInfo">-</span></p>
@@ -38,11 +71,9 @@
                 <p>Роль: <span id="userRole">Не определена</span></p>
                 <div id="userInfo"></div>
             </div>
-            <!-- Быстрое действие теперь здесь -->
             <div class="quick-actions-block" style="margin-top: 20px;">
                 <h3>Быстрое действие</h3>
                 <button id="quickMarkAttendanceBtn" style="padding: 8px 18px; font-size: 15px;">Отметить явку</button>
-                <!-- Быстрое действие для задач (видно только для нужных ролей) -->
                 <button id="addTaskBtn" style="padding: 8px 18px; font-size: 15px; display:none;">Добавить задачу</button>
             </div>
             <div id="tasksBlock" style="margin-top: 30px; display:none;">
@@ -50,32 +81,40 @@
                 <ul id="tasksList"></ul>
                 <button id="addTaskBtn" style="padding: 8px 18px; font-size: 15px; display:none; margin-top: 16px;">Добавить задачу</button>
             </div>
-        </div>
-        <div class="attendance-block">
-            <div class="attendance" id="attendance">
-                <h3>Явка</h3>
-                <p>Студент: <span id="studentNameAttendance">-</span></p>
-                <p>Пропущено часов: <span id="absentHours">0</span></p>
-                <p>Пропущено пар: <span id="absentLessons">0</span></p>
-                <p>Уважительные причины: <span id="excusedHours">0</span></p>
-                <p>Больничные: <span id="sickHours">0</span></p>
-                <p>Опоздания (часы): <span id="lateHours">0</span></p>
-                <p>Отсутствовал (часы): <span id="absentOnlyHours">0</span></p>
+            <div class="attendance-block">
+                <div class="attendance" id="attendance">
+                    <h3>Явка</h3>
+                    <p>Студент: <span id="studentNameAttendance">-</span></p>
+                    <p>Пропущено часов: <span id="absentHours">0</span></p>
+                    <p>Пропущено пар: <span id="absentLessons">0</span></p>
+                    <p>Уважительные причины: <span id="excusedHours">0</span></p>
+                    <p>Больничные: <span id="sickHours">0</span></p>
+                    <p>Опоздания (часы): <span id="lateHours">0</span></p>
+                    <p>Отсутствовал (часы): <span id="absentOnlyHours">0</span></p>
+                </div>
             </div>
         </div>
-        <!-- Удаляем старое место блока быстрого действия -->
-        <!-- <div class="quick-actions-block" style="margin-top: 20px;"> ... </div> -->
     </div>
+
+    <!-- Модальное окно для задач -->
     <div id="taskModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:1000; align-items:center; justify-content:center;">
-  <div style="background:#fff; padding:24px; border-radius:8px; min-width:300px;">
-    <h3>Добавить задачу</h3>
-    <input id="taskInput" type="text" placeholder="Введите задачу" style="width:100%;padding:8px;">
-    <div style="margin-top:12px; text-align:right;">
-      <button id="saveTaskBtn" style="padding:6px 16px;">Сохранить</button>
-      <button id="cancelTaskBtn" style="padding:6px 16px;">Отмена</button>
+        <div style="background:#fff; padding:24px; border-radius:8px; min-width:300px;">
+            <h3>Добавить задачу</h3>
+            <input id="taskInput" type="text" placeholder="Введите задачу" style="width:100%;padding:8px;">
+            <div style="margin-top:12px; text-align:right;">
+                <button id="saveTaskBtn" style="padding:6px 16px;">Сохранить</button>
+                <button id="cancelTaskBtn" style="padding:6px 16px;">Отмена</button>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
+
+    <!-- Скрипты (оставьте ваши, как есть) -->
+    <script>
+        const userStr = localStorage.getItem('currentUser');
+    if (!userStr) {
+      window.location.href = 'login.html';
+    }
+  </script>
     <script>
         function getDisplayRole(user) {
     // Приоритет: roleName, затем role
@@ -391,44 +430,41 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 });
     </script>
-<!-- Вставьте скрипт перед </body> -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const sidebar = document.getElementById('sidebar');
-    const toggleBtn = document.getElementById('sidebarToggleBtn');
-    const mainWrapper = document.getElementById('mainWrapper');
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('sidebarToggleBtn');
+        const mainWrapper = document.getElementById('mainWrapper');
 
-    function toggleSidebar() {
-        sidebar.classList.toggle('open');
-        // Для ПК сдвигаем контент
-        if (window.innerWidth > 900) {
-            if (sidebar.classList.contains('open')) {
-                mainWrapper.style.marginLeft = '220px';
-            } else {
-                mainWrapper.style.marginLeft = '0';
+        function toggleSidebar() {
+            sidebar.classList.toggle('open');
+            if (window.innerWidth > 900) {
+                if (sidebar.classList.contains('open')) {
+                    mainWrapper.style.marginLeft = '220px';
+                } else {
+                    mainWrapper.style.marginLeft = '0';
+                }
             }
         }
-    }
 
-    if (toggleBtn) {
-        toggleBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            toggleSidebar();
-        });
-    }
-
-    // Закрытие меню по клику вне меню
-    document.addEventListener('click', function(e) {
-        if (
-            sidebar.classList.contains('open') &&
-            !sidebar.contains(e.target) &&
-            e.target !== toggleBtn
-        ) {
-            sidebar.classList.remove('open');
-            if (window.innerWidth > 900) mainWrapper.style.marginLeft = '0';
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleSidebar();
+            });
         }
+
+        document.addEventListener('click', function(e) {
+            if (
+                sidebar.classList.contains('open') &&
+                !sidebar.contains(e.target) &&
+                e.target !== toggleBtn
+            ) {
+                sidebar.classList.remove('open');
+                if (window.innerWidth > 900) mainWrapper.style.marginLeft = '0';
+            }
+        });
     });
-});
-</script>
+    </script>
 </body>
 </html>
