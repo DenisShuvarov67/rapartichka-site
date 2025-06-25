@@ -432,7 +432,7 @@ updateOnlineStatus();
         const isOnline = onlineUsers.some(u => u.username === user.username);
         if (!isOnline) {
             alert('Вы были отключены администратором!');
-            localStorage.removeItem('currentUser');
+           
             window.location.href = 'login.html';
         }
     }
@@ -535,7 +535,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function toggleSidebar() {
         sidebar.classList.toggle('open');
-        // Для сдвига контента на ПК
+        // Для ПК сдвигаем контент
         if (window.innerWidth > 900) {
             if (sidebar.classList.contains('open')) {
                 mainWrapper.style.marginLeft = '220px';
@@ -545,9 +545,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    toggleBtn.addEventListener('click', toggleSidebar);
+    toggleBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        toggleSidebar();
+    });
 
-    // Закрытие меню по клику вне меню (опционально)
+    // Закрытие меню по клику вне меню
     document.addEventListener('click', function(e) {
         if (
             sidebar.classList.contains('open') &&
