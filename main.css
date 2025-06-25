@@ -492,10 +492,14 @@ body {
         position: absolute;
         top: 56px;
         left: 0;
-        width: 100%;
+        width: 90vw; /* Было 100%, стало уже */
+        max-width: 340px; /* Ограничиваем ширину меню */
         background: #23272f;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        box-shadow: 2px 0 12px #0005;
         z-index: 101;
+        border-radius: 0 0 16px 0;
+        padding-bottom: 12px;
+        align-items: flex-start;
     }
     .topbar-links.open {
         display: flex;
@@ -505,9 +509,21 @@ body {
         background: none;
         border: none;
         color: #36d46c;
-        font-size: 22px;
+        font-size: 28px;
         margin-right: 8px;
         cursor: pointer;
+    }
+    .topbar .sidebar-link,
+    .topbar .logout-btn {
+        width: 100%;
+        justify-content: flex-start;
+        border-radius: 0;
+        font-size: 1.1em;
+        padding: 14px 18px;
+        margin: 0;
+    }
+    .topbar {
+        padding: 0 0 0 8px;
     }
 }
 
