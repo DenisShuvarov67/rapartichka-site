@@ -460,6 +460,7 @@ function registerUser() {
         const loginInput = document.getElementById('adminLoginInput');
         const passInput = document.getElementById('adminPasswordInput');
         const rememberMe = document.getElementById('adminRememberMe');
+        const backBtn = document.getElementById('backToLoginBtn'); // <-- добавьте эту строку
 
         // Проверяем, был ли вход менее 5 минут назад
         const lastLogin = localStorage.getItem('adminLoginTime');
