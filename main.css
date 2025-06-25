@@ -167,9 +167,9 @@ p a:hover {
     background: #23272f;
     color: #36d46c;
     border: none;
-    font-size: 18px;      /* уменьшено с 28px */
+    font-size: 18px;
     border-radius: 6px;
-    padding: 4px 7px;     /* уменьшено */
+    padding: 4px 7px;
     cursor: pointer;
     transition: background 0.2s;
 }
@@ -188,6 +188,12 @@ p a:hover {
     }
     .sidebar-toggle {
         display: block;
+        background: none;
+        border: none;
+        color: #36d46c;
+        font-size: 28px;
+        margin-right: 8px;
+        cursor: pointer;
     }
     .main-wrapper {
         margin-left: 0 !important;
