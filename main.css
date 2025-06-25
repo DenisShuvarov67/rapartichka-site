@@ -739,68 +739,6 @@ a, a:visited, a:hover, a:active {
 }
 
 @media (max-width: 600px) {
-    body {
-        background: #f7f7f7;
-        color: #23272f;
-    }
-    .container,
-    .info-block,
-    .attendance-block,
-    .notifications-block,
-    .datetime-block,
-    .calendar-block {
-        background: #fff;
-        color: #23272f;
-        box-shadow: 0 2px 12px #0001;
-    }
-    .sidebar {
-        background: #fff;
-        color: #23272f;
-        box-shadow: 2px 0 12px #0002;
-    }
-    .sidebar-link,
-    .sidebar-link.active,
-    .sidebar-link:hover {
-        color: #23272f;
-        background: #e6f9ed;
-        border-left: 3px solid #36d46c;
-    }
-    .sidebar-toggle {
-        background: #fff;
-        color: #36d46c;
-        border: 1px solid #36d46c;
-    }
-    .sidebar-toggle:hover {
-        background: #e6f9ed;
-        color: #219150;
-    }
-    button, .add-row-form button, .logout-btn {
-        background: #36d46c;
-        color: #fff;
-        font-size: 1.2em;
-        padding: 16px 0;
-        border-radius: 10px;
-    }
-    input, select {
-        font-size: 1.1em;
-        padding: 14px;
-        border-radius: 10px;
-    }
-    h2, h3 {
-        color: #219150;
-    }
-    .main-wrapper {
-        padding: 10px 2vw;
-        margin-left: 0 !important;
-    }
-    .clock-box, .datetime-block {
-        background: #fff;
-        color: #23272f;
-        box-shadow: 0 2px 12px #0001;
-    }
-}
-
-@media (max-width: 600px) {
     .clock-box, .datetime-block {
         position: fixed !important;
         top: 70px !important;
