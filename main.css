@@ -159,8 +159,25 @@ p a:hover {
 }
 
 .sidebar-toggle {
-    display: none;
+    position: fixed;
+    top: 18px;
+    left: 18px;
+    z-index: 200;
+    background: #23272f;
+    color: #36d46c;
+    border: none;
+    font-size: 22px; /* уменьшено с 28px */
+    border-radius: 6px;
+    padding: 4px 7px;
+    cursor: pointer;
+    transition: background 0.2s;
 }
+
+.sidebar-toggle:hover {
+    background: #2fa85a;
+    color: #fff;
+}
+
 @media (max-width: 900px) {
     .sidebar-toggle {
         display: block;
@@ -502,7 +519,7 @@ a, a:visited, a:hover, a:active {
     background: #23272f;
     color: #36d46c;
     border: none;
-    font-size: 18px;
+    font-size: 22px; /* уменьшено с 28px */
     border-radius: 6px;
     padding: 4px 7px;
     cursor: pointer;
@@ -780,5 +797,29 @@ a, a:visited, a:hover, a:active {
         background: #fff;
         color: #23272f;
         box-shadow: 0 2px 12px #0001;
+    }
+}
+
+@media (max-width: 600px) {
+    .clock-box, .datetime-block {
+        position: fixed !important;
+        top: 70px !important;
+        right: 16px !important;
+        left: auto !important;
+        z-index: 150 !important;
+        background: #fff;
+        color: #23272f;
+        box-shadow: 0 2px 12px #0001;
+        width: auto;
+        min-width: 120px;
+        max-width: 220px;
+        border-radius: 12px;
+        padding: 8px 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .main-wrapper {
+        padding-top: 120px !important; /* чтобы контент не залезал под часы */
     }
 }
