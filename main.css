@@ -159,6 +159,15 @@ p a:hover {
 }
 
 .sidebar-toggle {
+    display: none;
+}
+@media (max-width: 900px) {
+    .sidebar-toggle {
+        display: block;
+    }
+}
+
+.sidebar-toggle {
     display: block; /* ВСЕГДА показывать */
     position: fixed;
     top: 18px;
