@@ -519,7 +519,7 @@ a, a:visited, a:hover, a:active {
     background: #23272f;
     color: #36d46c;
     border: none;
-    font-size: 22px; /* уменьшено с 28px */
+    font-size: 6px; /* уменьшено с 28px */
     border-radius: 6px;
     padding: 4px 7px;
     cursor: pointer;
