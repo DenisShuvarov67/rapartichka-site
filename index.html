@@ -526,5 +526,39 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 });
     </script>
+<!-- Вставьте скрипт перед </body> -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('sidebarToggleBtn');
+    const mainWrapper = document.getElementById('mainWrapper');
+
+    function toggleSidebar() {
+        sidebar.classList.toggle('open');
+        // Для сдвига контента на ПК
+        if (window.innerWidth > 900) {
+            if (sidebar.classList.contains('open')) {
+                mainWrapper.style.marginLeft = '220px';
+            } else {
+                mainWrapper.style.marginLeft = '0';
+            }
+        }
+    }
+
+    toggleBtn.addEventListener('click', toggleSidebar);
+
+    // Закрытие меню по клику вне меню (опционально)
+    document.addEventListener('click', function(e) {
+        if (
+            sidebar.classList.contains('open') &&
+            !sidebar.contains(e.target) &&
+            e.target !== toggleBtn
+        ) {
+            sidebar.classList.remove('open');
+            if (window.innerWidth > 900) mainWrapper.style.marginLeft = '0';
+        }
+    });
+});
+</script>
 </body>
 </html>

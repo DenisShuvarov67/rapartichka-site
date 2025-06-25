@@ -159,6 +159,7 @@ p a:hover {
 }
 
 .sidebar-toggle {
+    display: block; /* ВСЕГДА показывать */
     position: fixed;
     top: 18px;
     left: 18px;
@@ -166,7 +167,7 @@ p a:hover {
     background: #23272f;
     color: #36d46c;
     border: none;
-    font-size: 18px;
+    font-size: 28px;
     border-radius: 6px;
     padding: 4px 7px;
     cursor: pointer;
