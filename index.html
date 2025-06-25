@@ -64,6 +64,10 @@
         display: block;
         text-align: left;
     }
+    .clock-box #date, .clock-box #time {
+        color: #fff !important;
+        text-shadow: 0 1px 4px #0008;
+    }
 }
 /* Уменьшаем шрифт для пунктов меню в сайдбаре */
 .sidebar-link, .sidebar-settings .sidebar-link, .sidebar-logout .logout-btn {
@@ -102,7 +106,26 @@
 }
 .clock-box .bell-btn:hover {
     color: #2fa85a;
-}</style>
+}
+.sidebar-toggle {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    z-index: 1001;
+    background: none;
+    border: none;
+    font-size: 28px;
+    color: #36d46c;
+    cursor: pointer;
+    display: block;
+}
+@media (min-width: 901px) {
+    .sidebar-toggle {
+        display: none;
+    }
+}
+/* ...existing code... */
+</style>
 <body>
     <!-- Кнопка-бургер (видна только на мобильных) -->
     <button class="sidebar-toggle" id="sidebarToggleBtn" aria-label="Открыть меню">
