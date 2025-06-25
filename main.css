@@ -162,15 +162,24 @@ p a:hover {
     position: fixed;
     top: 18px;
     left: 18px;
-    z-index: 200;
+    z-index: 2000;
     background: #23272f;
     color: #36d46c;
     border: none;
-    font-size: 22px; /* уменьшено с 28px */
+    font-size: 22px; /* уменьшенный размер */
     border-radius: 6px;
-    padding: 4px 7px;
-    cursor: pointer;
+    padding: 4px 8px;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: background 0.2s;
+}
+
+.sidebar-toggle span {
+    font-size: 1.5em !important; /* уменьшить иконку внутри */
+    line-height: 1;
 }
 
 .sidebar-toggle:hover {
@@ -515,15 +524,24 @@ a, a:visited, a:hover, a:active {
     position: fixed;
     top: 18px;
     left: 18px;
-    z-index: 200;
+    z-index: 2000;
     background: #23272f;
     color: #36d46c;
     border: none;
-    font-size: 6px; /* уменьшено с 28px */
+    font-size: 22px; /* уменьшенный размер */
     border-radius: 6px;
-    padding: 4px 7px;
-    cursor: pointer;
+    padding: 4px 8px;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: background 0.2s;
+}
+
+.sidebar-toggle span {
+    font-size: 1.5em !important; /* уменьшить иконку внутри */
+    line-height: 1;
 }
 
 .sidebar-toggle:hover {
