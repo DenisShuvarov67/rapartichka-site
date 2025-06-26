@@ -3,6 +3,7 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
+const { Pool } = require('pg');
 
 const app = express();
 
@@ -14,6 +15,12 @@ const ADMIN_CREDENTIALS_FILE = path.join(__dirname, 'admin_credentials.json');
 const LOGIN_HISTORY_FILE = path.join(__dirname, 'login_history.json');
 const STUDENTS_FILE = path.join(__dirname, 'students.json');
 const SUBJECTS_FILE = path.join(__dirname, 'subjects.json');
+
+// Вставьте вашу строку подключения ниже
+const pool = new Pool({
+    connectionString: 'postgresql://postgres:[wEBtg0rPXeyDWytO]@db.emavakahyqyabufpaypv.supabase.co:5432/postgres',
+    ssl: { rejectUnauthorized: false }
+});
 
 app.use(cors());
 app.use(express.json({ limit: '20mb' }));
@@ -366,6 +373,16 @@ app.delete('/subjects', (req, res) => {
     subjects = subjects.filter(s => s !== name);
     fs.writeFileSync(SUBJECTS_FILE, JSON.stringify(subjects, null, 2));
     res.json({ success: true });
+});
+
+// Тестирование подключения к базе данных
+app.get('/db-test', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT NOW()');
+        res.json({ time: result.rows[0].now });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
 app.listen(PORT, () => {
