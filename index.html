@@ -107,7 +107,7 @@
 .clock-box .bell-btn:hover {
     color: #2fa85a;
 }</style>
-<body>
+<body style="display:none;">
     <!-- Кнопка-бургер (видна только на мобильных) -->
     <button class="sidebar-toggle" id="sidebarToggleBtn" aria-label="Открыть меню">
         <span>&#9776;</span>
@@ -208,11 +208,13 @@
 
     <!-- Скрипты (оставьте ваши, как есть) -->
     <script>
-        const userStr = localStorage.getItem('currentUser');
+    const userStr = localStorage.getItem('currentUser');
     if (!userStr) {
-      window.location.href = 'login.html';
+        window.location.href = 'login.html';
+    } else {
+        document.body.style.display = '';
     }
-  </script>
+    </script>
     <script>
         function getDisplayRole(user) {
     // Приоритет: roleName, затем role
