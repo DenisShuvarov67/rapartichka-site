@@ -400,15 +400,39 @@ const res = await fetch('https://rapartichka-site.onrender.com/users', {
                     document.getElementById('absentOnlyHours').textContent = absentOnlyHours;
                 }
 
-                // Первый вызов при загрузке
-                await updateAttendanceBlock();
-                await renderAttendanceCalendar(user);
+                // --- Календарь посещаемости с поддержкой месяцев ---
+    let calendarYear = (new Date()).getFullYear();
+    let calendarMonth = (new Date()).getMonth();
 
-                // Проверка каждый час (можно чаще, например, раз в 10 минут)
-                setInterval(async () => {
-                    await updateAttendanceBlock();
-                    await renderAttendanceCalendar(user);
-                }, 1 * 60 * 1000);
+    async function updateCalendar() {
+        await renderAttendanceCalendar(user, calendarYear, calendarMonth);
+    }
+
+    await updateAttendanceBlock();
+    await updateCalendar();
+
+    // Кнопки переключения месяцев
+    document.getElementById('prevMonthBtn').onclick = async function() {
+        calendarMonth--;
+        if (calendarMonth < 0) {
+            calendarMonth = 11;
+            calendarYear--;
+        }
+        await updateCalendar();
+    };
+    document.getElementById('nextMonthBtn').onclick = async function() {
+        calendarMonth++;
+        if (calendarMonth > 11) {
+            calendarMonth = 0;
+            calendarYear++;
+        }
+        await updateCalendar();
+    };
+
+    setInterval(async () => {
+        await updateAttendanceBlock();
+        await updateCalendar();
+    }, 1 * 60 * 1000);
             }
         });
 
