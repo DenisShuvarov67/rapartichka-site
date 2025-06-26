@@ -18,7 +18,7 @@ const SUBJECTS_FILE = path.join(__dirname, 'subjects.json');
 
 // Вставьте вашу строку подключения ниже
 const pool = new Pool({
-    connectionString: 'postgresql://postgres:[wEBtg0rPXeyDWytO]@db.emavakahyqyabufpaypv.supabase.co:5432/postgres',
+    connectionString: 'postgresql://postgres.emavakahyqyabufpaypv:[wEBtg0rPXeyDWytO]@aws-0-eu-north-1.pooler.supabase.com:6543/postgres',
     ssl: { rejectUnauthorized: false }
 });
 
