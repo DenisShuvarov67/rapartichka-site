@@ -282,7 +282,84 @@
     }
 }
 
-        document.addEventListener('DOMContentLoaded', async function() {
+// --- ПЕРЕМЕСТИТЕ функцию renderAttendanceCalendar выше! ---
+async function renderAttendanceCalendar(user, year, month) {
+    const calendarDiv = document.getElementById('attendanceCalendar');
+    const monthLabel = document.getElementById('calendarMonthLabel');
+    if (!calendarDiv || !monthLabel) return;
+
+    // Получаем данные о посещаемости
+    let attendanceData = [];
+    try {
+        const res = await fetch('https://rapartichka-site.onrender.com/absences');
+        if (res.ok) {
+            attendanceData = await res.json();
+        }
+    } catch (e) {
+        attendanceData = [];
+    }
+
+    // Массив дней месяца
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    // Сопоставление дат и статусов
+    const dayStatus = {};
+    attendanceData.forEach(row => {
+        const date = new Date(row.date);
+        if (
+            (row.student === user.username || row.student === user.fullName) &&
+            date.getMonth() === month &&
+            date.getFullYear() === year
+        ) {
+            const d = date.getDate();
+            // Приоритет: прогул > уважительная > больничный > опоздал > присутствовал
+            if (row.status === 'Отсутствовал') dayStatus[d] = 'absent';
+            else if (row.status === 'Уважительная причина') dayStatus[d] = 'excused';
+            else if (row.status === 'Больничный') dayStatus[d] = 'sick';
+            else if (row.status === 'Опоздал') dayStatus[d] = 'late';
+            else if (row.status === 'Присутствовал') dayStatus[d] = 'present';
+        }
+    });
+
+    // Названия месяцев
+    const monthNames = [
+        'Январь','Февраль','Март','Апрель','Май','Июнь',
+        'Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'
+    ];
+    monthLabel.textContent = `${monthNames[month]} ${year}`;
+
+    // Генерируем таблицу календаря
+    let html = '<table class="attendance-calendar-table"><tr>';
+    const weekDays = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+    weekDays.forEach(d => html += `<th>${d}</th>`);
+    html += '</tr><tr>';
+
+    // Первый день месяца (0=вс, 1=пн...)
+    let firstDay = new Date(year, month, 1).getDay();
+    if (firstDay === 0) firstDay = 7; // воскресенье -> 7
+
+    // Пустые ячейки до первого дня
+    for (let i = 1; i < firstDay; i++) html += '<td class="empty"></td>';
+
+    // Дни месяца
+    for (let day = 1; day <= daysInMonth; day++) {
+        const status = dayStatus[day] || '';
+        html += `<td class="${status}">${day}</td>`;
+        if ((firstDay + day - 1) % 7 === 0 && day !== daysInMonth) html += '</tr><tr>';
+    }
+
+    // Пустые ячейки после последнего дня
+    let lastCell = (firstDay + daysInMonth - 1) % 7;
+    if (lastCell !== 0) {
+        for (let i = lastCell + 1; i <= 7; i++) html += '<td class="empty"></td>';
+    }
+    html += '</tr></table>';
+
+    calendarDiv.innerHTML = html;
+}
+
+// --- ДАЛЕЕ идёт основной код ---
+document.addEventListener('DOMContentLoaded', async function() {
             const currentUser = JSON.parse(localStorage.getItem('currentUser'));
             let user = currentUser;
             try {
@@ -757,9 +834,6 @@ async function renderAttendanceCalendar(user, year, month) {
 
     calendarDiv.innerHTML = html;
 }
-
-// Вызовите после updateAttendanceBlock
-await renderAttendanceCalendar(user);
 </script>
 </body>
 </html>
