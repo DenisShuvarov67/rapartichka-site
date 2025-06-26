@@ -12,6 +12,8 @@ const ATTENDANCE_FILE = 'attendance.json'; // или нужный путь к ф
 const USERS_FILE = path.join(__dirname, 'users.json');
 const ADMIN_CREDENTIALS_FILE = path.join(__dirname, 'admin_credentials.json');
 const LOGIN_HISTORY_FILE = path.join(__dirname, 'login_history.json');
+const STUDENTS_FILE = path.join(__dirname, 'students.json');
+const SUBJECTS_FILE = path.join(__dirname, 'subjects.json');
 
 app.use(cors());
 app.use(express.json({ limit: '20mb' }));
@@ -299,6 +301,70 @@ app.put('/users/:username/password', (req, res) => {
     }
     users[userIndex].password = password;
     fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+    res.json({ success: true });
+});
+
+// Получить список студентов
+app.get('/students', (req, res) => {
+    if (!fs.existsSync(STUDENTS_FILE)) return res.json([]);
+    const students = JSON.parse(fs.readFileSync(STUDENTS_FILE, 'utf8'));
+    res.json(students);
+});
+
+// Добавить студента
+app.post('/students', (req, res) => {
+    const { name } = req.body;
+    let students = [];
+    if (fs.existsSync(STUDENTS_FILE)) {
+        students = JSON.parse(fs.readFileSync(STUDENTS_FILE, 'utf8'));
+    }
+    if (!students.includes(name)) {
+        students.push(name);
+        fs.writeFileSync(STUDENTS_FILE, JSON.stringify(students, null, 2));
+    }
+    res.json({ success: true });
+});
+
+// Удалить студента
+app.delete('/students', (req, res) => {
+    const { name } = req.body;
+    let students = [];
+    if (fs.existsSync(STUDENTS_FILE)) {
+        students = JSON.parse(fs.readFileSync(STUDENTS_FILE, 'utf8'));
+    }
+    students = students.filter(s => s !== name);
+    fs.writeFileSync(STUDENTS_FILE, JSON.stringify(students, null, 2));
+    res.json({ success: true });
+});
+
+// Аналогично для предметов:
+app.get('/subjects', (req, res) => {
+    if (!fs.existsSync(SUBJECTS_FILE)) return res.json([]);
+    const subjects = JSON.parse(fs.readFileSync(SUBJECTS_FILE, 'utf8'));
+    res.json(subjects);
+});
+
+app.post('/subjects', (req, res) => {
+    const { name } = req.body;
+    let subjects = [];
+    if (fs.existsSync(SUBJECTS_FILE)) {
+        subjects = JSON.parse(fs.readFileSync(SUBJECTS_FILE, 'utf8'));
+    }
+    if (!subjects.includes(name)) {
+        subjects.push(name);
+        fs.writeFileSync(SUBJECTS_FILE, JSON.stringify(subjects, null, 2));
+    }
+    res.json({ success: true });
+});
+
+app.delete('/subjects', (req, res) => {
+    const { name } = req.body;
+    let subjects = [];
+    if (fs.existsSync(SUBJECTS_FILE)) {
+        subjects = JSON.parse(fs.readFileSync(SUBJECTS_FILE, 'utf8'));
+    }
+    subjects = subjects.filter(s => s !== name);
+    fs.writeFileSync(SUBJECTS_FILE, JSON.stringify(subjects, null, 2));
     res.json({ success: true });
 });
 
