@@ -273,7 +273,7 @@
             users[userIndex].additionalRoles.push(additionalRole);
 
             // Сохраняем обновлённый список пользователей на сервере
-            fetch('http://localhost:6001/users/' + encodeURIComponent(username) + '/roles', {
+            fetch('https://rapartichka-site.onrender.com/users/' + encodeURIComponent(username) + '/roles', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ additionalRoles: users[userIndex].additionalRoles })

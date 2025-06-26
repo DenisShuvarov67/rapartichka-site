@@ -392,7 +392,7 @@
             return;
         }
         try {
-            const res = await fetch('http://localhost:6001/absences', { method: 'GET' });
+            const res = await fetch('https://rapartichka-site.onrender.com/absences', { method: 'GET' });
             if (!res.ok) throw new Error('Ошибка загрузки данных');
             let data = await res.json();
 

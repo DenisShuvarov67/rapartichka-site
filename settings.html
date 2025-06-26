@@ -243,7 +243,7 @@
             }
 
             // Отправляем запрос на сервер для смены пароля в user.json
-            fetch('http://localhost:6001/users/' + encodeURIComponent(currentUser.username) + '/password', {
+            fetch('https://rapartichka-site.onrender.com/users/' + encodeURIComponent(currentUser.username) + '/password', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ password: newPassword })
@@ -389,7 +389,7 @@
             reader.onload = function(e) {
                 // Сохраняем base64 на сервере
                 let currentUser = JSON.parse(localStorage.getItem('currentUser'));
-                fetch('http://localhost:6001/users/' + encodeURIComponent(currentUser.username) + '/avatar', {
+                fetch('https://rapartichka-site.onrender.com/users/' + encodeURIComponent(currentUser.username) + '/avatar', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ avatar: e.target.result })
@@ -442,7 +442,7 @@
                 return;
             }
 
-            fetch('http://localhost:6001/change-admin-credentials', {
+            fetch('https://rapartichka-site.onrender.com/change-admin-credentials', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username: login, password })

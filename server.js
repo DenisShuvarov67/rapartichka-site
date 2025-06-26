@@ -55,8 +55,8 @@ app.post('/login', (req, res) => {
 
     // Получаем IP
     let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || null;
-    // Преобразуем ::1 и 127.0.0.1 в "localhost" для удобства
-    if (ip === '::1' || ip === '127.0.0.1') ip = 'localhost';
+    // Преобразуем ::1 и 127.0.0.1 в адрес сайта для удобства
+    if (ip === '::1' || ip === '127.0.0.1') ip = 'rapartichka-site.onrender.com';
 
     // Получаем историю входов
     const history = getLoginHistory(username);
@@ -303,5 +303,5 @@ app.put('/users/:username/password', (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`Сервер запущен на http://localhost:${PORT}`);
+    console.log(`Сервер запущен на https://rapartichka-site.onrender.com`);
 });
