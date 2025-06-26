@@ -42,6 +42,27 @@
     <h2>Пользователи онлайн</h2>
     <div id="onlineUsersList"></div>
     <script>
+        // Проверка авторизации
+        const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+        if (!currentUser) {
+            window.location.href = 'login.html';
+        } else {
+            // Добавляем/обновляем пользователя в onlineUsers
+            function updateOnlineStatus() {
+                let onlineUsers = JSON.parse(localStorage.getItem('onlineUsers')) || [];
+                const now = Date.now();
+                const idx = onlineUsers.findIndex(u => u.username === currentUser.username);
+                if (idx !== -1) {
+                    onlineUsers[idx].lastActive = now;
+                } else {
+                    onlineUsers.push({ username: currentUser.username, lastActive: now });
+                }
+                localStorage.setItem('onlineUsers', JSON.stringify(onlineUsers));
+            }
+            updateOnlineStatus();
+            setInterval(updateOnlineStatus, 30000); // обновлять статус каждые 30 секунд
+        }
+
         // Получаем список пользователей онлайн из localStorage
         function renderOnlineUsers() {
             const onlineUsers = JSON.parse(localStorage.getItem('onlineUsers')) || [];
