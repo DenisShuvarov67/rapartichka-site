@@ -143,7 +143,7 @@
             <span class="sidebar-icon"><i class="fas fa-cog"></i></span>
             <span class="sidebar-label settings-label">Настройки</span>
         </a>
-        <button class="logout-btn" onclick="window.location.href='login.html'">
+        <button class="logout-btn" id="logoutBtn">
             <span class="sidebar-icon"><i class="fas fa-sign-out-alt"></i></span>
             <span class="logout-label">Выйти</span>
         </button>
@@ -581,6 +581,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+</script>
+<script>
+document.getElementById('logoutBtn').onclick = function(e) {
+    e.preventDefault();
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('authToken');
+    // Если нужно, очистите и другие данные пользователя:
+    // localStorage.removeItem('onlineUsers');
+    // localStorage.removeItem('tasksList');
+    window.location.href = 'login.html';
+};
 </script>
 </body>
 </html>
