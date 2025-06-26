@@ -106,7 +106,33 @@
 }
 .clock-box .bell-btn:hover {
     color: #2fa85a;
-}</style>
+}
+.attendance-calendar-table {
+    border-collapse: collapse;
+    width: 100%;
+    max-width: 420px;
+    margin-top: 10px;
+}
+.attendance-calendar-table th, .attendance-calendar-table td {
+    border: 1px solid #ccc;
+    width: 40px;
+    height: 38px;
+    text-align: center;
+    font-size: 14px;
+    vertical-align: middle;
+    cursor: default;
+}
+.attendance-calendar-table th {
+    background: #f5f5f5;
+    font-weight: 600;
+}
+.attendance-calendar-table td.absent { background: #e74c3c; color: #fff; }
+.attendance-calendar-table td.excused { background: #f1c40f; color: #222; }
+.attendance-calendar-table td.sick { background: #f1c40f; color: #222; border: 2px solid #b8860b; }
+.attendance-calendar-table td.late { background: #3498db; color: #fff; }
+.attendance-calendar-table td.present { background: #36d46c; color: #fff; }
+.attendance-calendar-table td.empty { background: #f9f9f9; }
+</style>
 <body style="display:none;">
     <!-- Кнопка-бургер (видна только на мобильных) -->
     <button class="sidebar-toggle" id="sidebarToggleBtn" aria-label="Открыть меню">
@@ -191,6 +217,23 @@
                     <p>Отсутствовал (часы): <span id="absentOnlyHours">0</span></p>
                 </div>
             </div>
+
+            <!-- Календарь посещаемости -->
+<div id="attendanceCalendarBlock" style="margin-top:30px;">
+    <h3>Календарь посещаемости</h3>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+        <button id="prevMonthBtn" style="font-size:18px;padding:2px 10px;">&#8592;</button>
+        <span id="calendarMonthLabel" style="font-weight:600;"></span>
+        <button id="nextMonthBtn" style="font-size:18px;padding:2px 10px;">&#8594;</button>
+    </div>
+    <div id="attendanceCalendar"></div>
+    <div style="margin-top:8px;font-size:13px;">
+        <span style="display:inline-block;width:16px;height:16px;background:#36d46c;border-radius:3px;margin-right:4px;vertical-align:middle;"></span> Присутствовал
+        <span style="display:inline-block;width:16px;height:16px;background:#e74c3c;border-radius:3px;margin:0 8px 0 16px;vertical-align:middle;"></span> Прогул
+        <span style="display:inline-block;width:16px;height:16px;background:#f1c40f;border-radius:3px;margin:0 8px 0 0;vertical-align:middle;"></span> Болел
+        <span style="display:inline-block;width:16px;height:16px;background:#3498db;border-radius:3px;margin:0 8px 0 0;vertical-align:middle;"></span> Опоздал
+    </div>
+</div>
         </div>
     </div>
 
@@ -359,9 +402,13 @@ const res = await fetch('https://rapartichka-site.onrender.com/users', {
 
                 // Первый вызов при загрузке
                 await updateAttendanceBlock();
+                await renderAttendanceCalendar(user);
 
                 // Проверка каждый час (можно чаще, например, раз в 10 минут)
-                setInterval(updateAttendanceBlock, 1 * 60 * 1000);
+                setInterval(async () => {
+                    await updateAttendanceBlock();
+                    await renderAttendanceCalendar(user);
+                }, 1 * 60 * 1000);
             }
         });
 
@@ -610,6 +657,85 @@ document.getElementById('logoutBtn').onclick = function(e) {
     // localStorage.removeItem('tasksList');
     window.location.href = 'login.html';
 };
+</script>
+<script>
+async function renderAttendanceCalendar(user, year, month) {
+    const calendarDiv = document.getElementById('attendanceCalendar');
+    const monthLabel = document.getElementById('calendarMonthLabel');
+    if (!calendarDiv || !monthLabel) return;
+
+    // Получаем данные о посещаемости
+    let attendanceData = [];
+    try {
+        const res = await fetch('https://rapartichka-site.onrender.com/absences');
+        if (res.ok) {
+            attendanceData = await res.json();
+        }
+    } catch (e) {
+        attendanceData = [];
+    }
+
+    // Массив дней месяца
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    // Сопоставление дат и статусов
+    const dayStatus = {};
+    attendanceData.forEach(row => {
+        const date = new Date(row.date);
+        if (
+            (row.student === user.username || row.student === user.fullName) &&
+            date.getMonth() === month &&
+            date.getFullYear() === year
+        ) {
+            const d = date.getDate();
+            // Приоритет: прогул > уважительная > больничный > опоздал > присутствовал
+            if (row.status === 'Отсутствовал') dayStatus[d] = 'absent';
+            else if (row.status === 'Уважительная причина') dayStatus[d] = 'excused';
+            else if (row.status === 'Больничный') dayStatus[d] = 'sick';
+            else if (row.status === 'Опоздал') dayStatus[d] = 'late';
+            else if (row.status === 'Присутствовал') dayStatus[d] = 'present';
+        }
+    });
+
+    // Названия месяцев
+    const monthNames = [
+        'Январь','Февраль','Март','Апрель','Май','Июнь',
+        'Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'
+    ];
+    monthLabel.textContent = `${monthNames[month]} ${year}`;
+
+    // Генерируем таблицу календаря
+    let html = '<table class="attendance-calendar-table"><tr>';
+    const weekDays = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+    weekDays.forEach(d => html += `<th>${d}</th>`);
+    html += '</tr><tr>';
+
+    // Первый день месяца (0=вс, 1=пн...)
+    let firstDay = new Date(year, month, 1).getDay();
+    if (firstDay === 0) firstDay = 7; // воскресенье -> 7
+
+    // Пустые ячейки до первого дня
+    for (let i = 1; i < firstDay; i++) html += '<td class="empty"></td>';
+
+    // Дни месяца
+    for (let day = 1; day <= daysInMonth; day++) {
+        const status = dayStatus[day] || '';
+        html += `<td class="${status}">${day}</td>`;
+        if ((firstDay + day - 1) % 7 === 0 && day !== daysInMonth) html += '</tr><tr>';
+    }
+
+    // Пустые ячейки после последнего дня
+    let lastCell = (firstDay + daysInMonth - 1) % 7;
+    if (lastCell !== 0) {
+        for (let i = lastCell + 1; i <= 7; i++) html += '<td class="empty"></td>';
+    }
+    html += '</tr></table>';
+
+    calendarDiv.innerHTML = html;
+}
+
+// Вызовите после updateAttendanceBlock
+await renderAttendanceCalendar(user);
 </script>
 </body>
 </html>
