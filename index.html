@@ -206,6 +206,15 @@
         </div>
     </div>
 
+    <!-- Модальное окно для уведомления -->
+    <div id="authModal" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.35); z-index:2000; align-items:center; justify-content:center;">
+      <div style="background:#fff; padding:28px 36px; border-radius:10px; min-width:300px; text-align:center;">
+        <div style="font-size:18px; margin-bottom:12px;"><b>Требуется авторизация</b></div>
+        <div style="margin-bottom:18px;">Пожалуйста, авторизуйтесь для доступа к разделу!</div>
+        <button id="authModalClose" style="padding:7px 22px; font-size:15px;">Закрыть</button>
+      </div>
+    </div>
+
     <!-- Скрипты (оставьте ваши, как есть) -->
     <script>
     const userStr = localStorage.getItem('currentUser');
@@ -570,16 +579,25 @@ document.addEventListener('DOMContentLoaded', function() {
 document.addEventListener('DOMContentLoaded', function() {
     // Проверка авторизации при клике по любому пункту сайдбара
     const sidebarLinks = document.querySelectorAll('.sidebar-link, .logout-btn');
+    const authModal = document.getElementById('authModal');
+    const authModalClose = document.getElementById('authModalClose');
+
     sidebarLinks.forEach(link => {
         link.addEventListener('click', function(e) {
             const user = localStorage.getItem('currentUser');
             if (!user) {
                 e.preventDefault();
-                alert('Пожалуйста, авторизуйтесь для доступа к разделу!');
-                window.location.href = 'login.html';
+                authModal.style.display = 'flex';
             }
         });
     });
+
+    if (authModalClose) {
+        authModalClose.onclick = function() {
+            authModal.style.display = 'none';
+            window.location.href = 'login.html';
+        };
+    }
 });
 </script>
 <script>
