@@ -7,7 +7,7 @@ const { Pool } = require('pg');
 
 const app = express();
 
-const PORT = 6001;
+const PORT = process.env.PORT || 6001;
 
 const ATTENDANCE_FILE = 'attendance.json'; // или нужный путь к файлу
 const USERS_FILE = path.join(__dirname, 'users.json');
