@@ -311,37 +311,36 @@ app.put('/users/:username/password', (req, res) => {
     res.json({ success: true });
 });
 
-// Получить список студентов
-app.get('/students', (req, res) => {
-    if (!fs.existsSync(STUDENTS_FILE)) return res.json([]);
-    const students = JSON.parse(fs.readFileSync(STUDENTS_FILE, 'utf8'));
-    res.json(students);
+// Получить список студентов из PostgreSQL
+app.get('/students', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT id, name FROM students ORDER BY name');
+        res.json(result.rows);
+    } catch (e) {
+        res.status(500).json({ error: 'Ошибка базы данных' });
+    }
 });
 
-// Добавить студента
-app.post('/students', (req, res) => {
+// Добавить студента в PostgreSQL
+app.post('/students', async (req, res) => {
     const { name } = req.body;
-    let students = [];
-    if (fs.existsSync(STUDENTS_FILE)) {
-        students = JSON.parse(fs.readFileSync(STUDENTS_FILE, 'utf8'));
+    try {
+        await pool.query('INSERT INTO students(name) VALUES($1) ON CONFLICT DO NOTHING', [name]);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: 'Ошибка базы данных' });
     }
-    if (!students.includes(name)) {
-        students.push(name);
-        fs.writeFileSync(STUDENTS_FILE, JSON.stringify(students, null, 2));
-    }
-    res.json({ success: true });
 });
 
-// Удалить студента
-app.delete('/students', (req, res) => {
-    const { name } = req.body;
-    let students = [];
-    if (fs.existsSync(STUDENTS_FILE)) {
-        students = JSON.parse(fs.readFileSync(STUDENTS_FILE, 'utf8'));
+// Удалить студента из PostgreSQL
+app.delete('/students', async (req, res) => {
+    const { id } = req.body;
+    try {
+        await pool.query('DELETE FROM students WHERE id=$1', [id]);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: 'Ошибка базы данных' });
     }
-    students = students.filter(s => s !== name);
-    fs.writeFileSync(STUDENTS_FILE, JSON.stringify(students, null, 2));
-    res.json({ success: true });
 });
 
 // Аналогично для предметов:
