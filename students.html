@@ -156,44 +156,46 @@ input[type="text"]:focus {
     });
 
     // Работа со студентами
-    function getStudents() {
-        return JSON.parse(localStorage.getItem('students') || '[]');
-    }
-    function setStudents(students) {
-        localStorage.setItem('students', JSON.stringify(students));
-    }
-    function updateStudentList() {
+    async function fetchStudents() {
+        const res = await fetch('/students');
+        const students = await res.json();
         const list = document.getElementById('studentList');
         list.innerHTML = '';
-        getStudents().forEach((name, idx) => {
+        students.forEach(student => {
             const li = document.createElement('li');
-            li.textContent = name + ' ';
+            li.textContent = student.name + ' ';
             const del = document.createElement('button');
             del.textContent = 'Удалить';
-            del.onclick = () => {
-                const students = getStudents();
-                students.splice(idx, 1);
-                setStudents(students);
-                updateStudentList();
+            del.onclick = async () => {
+                await fetch('/students', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: student.id })
+                });
+                await fetchStudents();
             };
             li.appendChild(del);
             list.appendChild(li);
         });
     }
-    document.addEventListener('DOMContentLoaded', updateStudentList);
-    document.getElementById('addStudentBtn').onclick = function() {
+
+    // Добавление студента
+    document.getElementById('addStudentBtn').onclick = async function() {
         const input = document.getElementById('newStudentInput');
         const name = input.value.trim();
         if (name) {
-            const students = getStudents();
-            if (!students.includes(name)) {
-                students.push(name);
-                setStudents(students);
-                updateStudentList();
-            }
+            await fetch('/students', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name })
+            });
+            await fetchStudents();
             input.value = '';
         }
     };
+
+    // Загружаем список при открытии страницы
+    document.addEventListener('DOMContentLoaded', fetchStudents);
 
     // Работа с предметами
     function getSubjects() {
