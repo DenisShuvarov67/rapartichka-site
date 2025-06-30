@@ -309,44 +309,18 @@
     }
 
     async function loadAbsences() {
-        try {
-            const res = await fetch('https://rapartichka-site.onrender.com/absences');
-            if (!res.ok) throw new Error('Ошибка загрузки данных');
-            const data = await res.json();
-
-            fillMonthSelect(data);
-            fillStudentSelect(data);
-
-            const select = document.getElementById('monthSelect');
-            function renderForMonth(month) {
-                fillDateSelect(data, month); // обязательно вызываем!
-                renderMainTable(data, month);
-            }
-
-            document.getElementById('monthSelect').onchange = function() {
-                renderForMonth(this.value);
-            };
-
-            document.getElementById('dateSelect').onchange = function() {
-                renderMainTable(data, document.getElementById('monthSelect').value);
-            };
-
-            document.getElementById('studentSelect').onchange = function() {
-                renderMainTable(data, select.value);
-            };
-
-            if (select.options.length > 0) {
-                select.selectedIndex = 0;
-                renderForMonth(select.value);
-            } else {
-                document.getElementById('mainTable').innerHTML = '<p>Нет данных</p>';
-            }
-        } catch (e) {
-            document.getElementById('mainTable').innerHTML = '<p style="color:red;">Ошибка загрузки данных</p>';
-            console.error(e);
-        }
+        const res = await fetch('/absences');
+        const data = await res.json();
+        console.log('Все явки:', data); // Посмотрите, что приходит
+        const container = document.querySelector('.container');
+        container.innerHTML = '<h2>Все посещения</h2>';
+        data.forEach(row => {
+            container.innerHTML += `<div>
+            <b>${row.date}</b> — <b>${row.student}</b> — <b>${row.subject}</b> — <b>${row.status}</b> — ${row.comment || ''}
+        </div>`;
+        });
     }
-    window.onload = loadAbsences;
+    document.addEventListener('DOMContentLoaded', loadAbsences);
 
     // --- Модальное подтверждение удаления ---
     let deleteAbsenceIndex = null;
