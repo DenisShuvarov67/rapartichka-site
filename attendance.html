@@ -5,9 +5,44 @@
     <title>Посещаемость студента</title>
     <link rel="stylesheet" href="main.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-
 </head>
 <body>
+    <!-- Сайдбар -->
+    <nav class="sidebar" id="sidebar">
+        <a href="index.html" class="sidebar-link active" title="Главная">
+            <span class="sidebar-icon"><i class="fas fa-home"></i></span>
+            <span class="sidebar-label">Главная</span>
+        </a>
+        <a href="attendance.html" class="sidebar-link" title="Отметить явку">
+            <span class="sidebar-icon"><i class="fas fa-user-check"></i></span>
+            <span class="sidebar-label">Явка</span>
+        </a>
+        <a href="absences.html" class="sidebar-link" title="Явка за месяц">
+            <span class="sidebar-icon"><i class="fas fa-chart-bar"></i></span>
+            <span class="sidebar-label">Явка за месяц</span>
+        </a>
+        <a href="students.html" class="sidebar-link" title="Панель старосты и его зама">
+            <span class="sidebar-icon"><i class="fas fa-user-graduate"></i></span>
+            <span class="sidebar-label">Панель старосты и его зама</span>
+        </a>
+        <a href="https://t.me/+rkj_U8Ou3uYyMzNi" class="sidebar-link" title="Чат в Telegram" target="_blank" rel="noopener">
+            <span class="sidebar-icon"><i class="fab fa-telegram-plane"></i></span>
+            <span class="sidebar-label">Telegram чат</span>
+        </a>
+        <a id="adminLink" href="admin.html" class="sidebar-link">
+            <span class="sidebar-icon"><i class="fas fa-user-shield"></i></span>
+            <span class="sidebar-label">Админ<br>панель</span>
+        </a>
+        <a href="settings.html" class="sidebar-link" title="Настройки">
+            <span class="sidebar-icon"><i class="fas fa-cog"></i></span>
+            <span class="sidebar-label settings-label">Настройки</span>
+        </a>
+        <button class="logout-btn" id="logoutBtn">
+            <span class="sidebar-icon"><i class="fas fa-sign-out-alt"></i></span>
+            <span class="logout-label">Выйти</span>
+        </button>
+    </nav>
+
     <div class="container">
         <h2>Посещаемость студента</h2>
         <form id="attendanceForm">
@@ -32,130 +67,80 @@
             <button type="submit">Отметить явку</button>
         </form>
         <div id="message"></div>
-
-        <script>
-        document.getElementById('attendanceForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const form = e.target;
-            const data = Object.fromEntries(new FormData(form));
-            try {
-                const res = await fetch('https://rapartichka-site.onrender.com/attendance', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                if (res.ok) {
-                    document.getElementById('message').textContent = 'Явка успешно отмечена!';
-                    form.reset();
-
-                    // Логирование действия
-                    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-                    const studentName = data.student;
-                    const subject = data.subject;
-                    const date = data.date;
-                    addActionLog(currentUser.username, `Отметил явку для ${studentName} по предмету "${subject}" (${date})`);
-                } else {
-                    document.getElementById('message').textContent = 'Ошибка при отправке!';
-                }
-            } catch (error) {
-                console.error('Ошибка при отправке:', error);
-                document.getElementById('message').textContent = 'Ошибка соединения с сервером!';
-            }
-        });
-        </script>
-        <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const user = JSON.parse(localStorage.getItem('currentUser'));
-            // Разрешённые роли
-            const allowedRoles = ['староста', 'зам старосты', 'администратор', 'куратор'];
-            const userRole = (user?.roleName || user?.role || '').toLowerCase();
-            if (!user || !allowedRoles.includes(userRole)) {
-                document.body.innerHTML = '<div style="color:red;text-align:center;margin-top:50px;font-size:1.5em;">У вас нет доступа к этому разделу<p><a href="index.html">Вернуться на главную</a></p></div>';
-            }
-        });
-        </script>
     </div>
 
     <script>
-    // --- Только выпадающий список студентов ---
-    function getStudents() {
-        return JSON.parse(localStorage.getItem('students') || '[]');
+    // Проверка доступа
+    document.addEventListener('DOMContentLoaded', function() {
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        const allowedRoles = ['староста', 'зам старосты', 'администратор', 'куратор'];
+        const userRole = (user?.roleName || user?.role || '').toLowerCase();
+        if (!user || !allowedRoles.includes(userRole)) {
+            document.body.innerHTML = '<div style="color:red;text-align:center;margin-top:50px;font-size:1.5em;">У вас нет доступа к этому разделу<p><a href="index.html">Вернуться на главную</a></p></div>';
+        }
+    });
+
+    // Получение студентов с сервера
+    async function fetchStudents() {
+        const res = await fetch('/students');
+        return await res.json();
     }
-    function updateStudentSelect() {
-        const select = document.getElementById('studentSelect');
-        select.innerHTML = '';
-        getStudents().forEach(name => {
-            const opt = document.createElement('option');
-            opt.value = name;
-            opt.textContent = name;
-            select.appendChild(opt);
+
+    // Получение предметов с сервера
+    async function fetchSubjects() {
+        const res = await fetch('/subjects');
+        return await res.json();
+    }
+
+    // Заполнение выпадающих списков
+    async function fillSelects() {
+        const students = await fetchStudents();
+        const subjects = await fetchSubjects();
+
+        const studentSelect = document.getElementById('studentSelect');
+        const subjectSelect = document.getElementById('subjectSelect');
+
+        studentSelect.innerHTML = '';
+        students.forEach(student => {
+            const option = document.createElement('option');
+            option.value = student.id;
+            option.textContent = student.name;
+            studentSelect.appendChild(option);
+        });
+
+        subjectSelect.innerHTML = '';
+        subjects.forEach(subject => {
+            const option = document.createElement('option');
+            option.value = subject.id;
+            option.textContent = subject.name;
+            subjectSelect.appendChild(option);
         });
     }
-    document.addEventListener('DOMContentLoaded', updateStudentSelect);
-    </script>
 
-    <script>
-    // --- Выпадающий список предметов ---
-    function getSubjects() {
-        return JSON.parse(localStorage.getItem('subjects') || '[]');
-    }
-    function updateSubjectSelect() {
-        const select = document.getElementById('subjectSelect');
-        if (!select) return;
-        select.innerHTML = '';
-        getSubjects().forEach(name => {
-            const opt = document.createElement('option');
-            opt.value = name;
-            opt.textContent = name;
-            select.appendChild(opt);
-        });
-    }
-    document.addEventListener('DOMContentLoaded', updateSubjectSelect);
-    </script>
+    document.addEventListener('DOMContentLoaded', fillSelects);
 
-    <nav class="topbar" id="topbar">
-        <div class="topbar-links" id="topbarLinks">
-            <a href="index.html" class="sidebar-link" title="Главная">
-                <span class="sidebar-icon"><i class="fas fa-home"></i></span>
-                <span class="sidebar-label">Главная</span>
-            </a>
-            <a href="attendance.html" class="sidebar-link" title="Отметить явку">
-                <span class="sidebar-icon"><i class="fas fa-user-check"></i></span>
-                <span class="sidebar-label">Явка</span>
-            </a>
-            <a href="absences.html" class="sidebar-link" title="Явка за месяц">
-                <span class="sidebar-icon"><i class="fas fa-chart-bar"></i></span>
-                <span class="sidebar-label">Явка за месяц</span>
-            </a>
-            <a href="students.html" class="sidebar-link" title="Панель старосты и его зама">
-                <span class="sidebar-icon"><i class="fas fa-user-graduate"></i></span>
-                <span class="sidebar-label">Панель старосты и его зама</span>
-            </a>
-            <a id="adminLink" href="admin.html" class="sidebar-link" style="display:none;">
-                <span class="sidebar-icon"><i class="fas fa-user-shield"></i></span>
-                <span class="sidebar-label">Админ<br>панель</span>
-            </a>
-            <a href="settings.html" class="sidebar-link" title="Настройки">
-                <span class="sidebar-icon"><i class="fas fa-cog"></i></span>
-                <span class="sidebar-label settings-label">Настройки</span>
-            </a>
-            <button class="logout-btn" onclick="window.location.href='login.html'">
-                <span class="sidebar-icon"><i class="fas fa-sign-out-alt"></i></span>
-                <span class="logout-label">Выйти</span>
-            </button>
-        </div>
-    </nav>
-
-    <script>
-    function addActionLog(user, action) {
-        const logs = JSON.parse(localStorage.getItem('actionLogs')) || [];
-        logs.unshift({
-            time: new Date().toLocaleString(),
-            user,
-            action
-        });
-        localStorage.setItem('actionLogs', JSON.stringify(logs.slice(0, 1000)));
-    }
+    // Отправка формы явки
+    document.getElementById('attendanceForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const form = e.target;
+        const data = Object.fromEntries(new FormData(form));
+        try {
+            const res = await fetch('/attendance', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (res.ok) {
+                document.getElementById('message').textContent = 'Явка успешно отмечена!';
+                form.reset();
+            } else {
+                document.getElementById('message').textContent = 'Ошибка при отправке!';
+            }
+        } catch (error) {
+            console.error('Ошибка при отправке:', error);
+            document.getElementById('message').textContent = 'Ошибка соединения с сервером!';
+        }
+    });
     </script>
 </body>
 </html>
