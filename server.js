@@ -144,12 +144,13 @@ app.get('/attendance', (req, res) => {
 app.post('/attendance', async (req, res) => {
     const { date, student, subject, status, comment } = req.body;
     try {
-        // Получаем id студента и предмета по имени
-        const studentResult = await pool.query('SELECT id FROM students WHERE id = $1 OR name = $1', [student]);
-        const subjectResult = await pool.query('SELECT id FROM subjects WHERE id = $1 OR name = $1', [subject]);
-        const studentId = studentResult.rows[0]?.id;
-        const subjectId = subjectResult.rows[0]?.id;
-        if (!studentId || !subjectId) {
+        // student и subject — это id
+        const studentId = Number(student);
+        const subjectId = Number(subject);
+        // Проверяем, что такие id есть в базе
+        const studentResult = await pool.query('SELECT id FROM students WHERE id = $1', [studentId]);
+        const subjectResult = await pool.query('SELECT id FROM subjects WHERE id = $1', [subjectId]);
+        if (!studentResult.rows.length || !subjectResult.rows.length) {
             return res.status(400).json({ error: 'Студент или предмет не найден' });
         }
         await pool.query(
