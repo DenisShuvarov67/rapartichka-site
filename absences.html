@@ -309,16 +309,38 @@
     }
 
     async function loadAbsences() {
-        const res = await fetch('/absences');
+        const res = await fetch('https://rapartichka-site.onrender.com/absences');
         const data = await res.json();
-        console.log('Все явки:', data); // Посмотрите, что приходит
-        const container = document.querySelector('.container');
-        container.innerHTML = '<h2>Все посещения</h2>';
-        data.forEach(row => {
-            container.innerHTML += `<div>
-            <b>${row.date}</b> — <b>${row.student}</b> — <b>${row.subject}</b> — <b>${row.status}</b> — ${row.comment || ''}
-        </div>`;
-        });
+
+        // Заполняем фильтры
+        fillMonthSelect(data);
+        fillStudentSelect(data);
+
+        // Получаем выбранный месяц (по умолчанию первый)
+        const monthSelect = document.getElementById('monthSelect');
+        let month = monthSelect.value;
+        if (!month && monthSelect.options.length > 0) {
+            month = monthSelect.options[0].value;
+            monthSelect.value = month;
+        }
+
+        // Заполняем даты для выбранного месяца
+        fillDateSelect(data, month);
+
+        // Рисуем таблицу
+        renderMainTable(data, month);
+
+        // Обработчики фильтров
+        monthSelect.onchange = () => {
+            fillDateSelect(data, monthSelect.value);
+            renderMainTable(data, monthSelect.value);
+        };
+        document.getElementById('studentSelect').onchange = () => {
+            renderMainTable(data, monthSelect.value);
+        };
+        document.getElementById('dateSelect').onchange = () => {
+            renderMainTable(data, monthSelect.value);
+        };
     }
     document.addEventListener('DOMContentLoaded', loadAbsences);
 
