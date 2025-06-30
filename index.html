@@ -234,6 +234,13 @@
         <span style="display:inline-block;width:16px;height:16px;background:#3498db;border-radius:3px;margin:0 8px 0 0;vertical-align:middle;"></span> Опоздал
     </div>
 </div>
+
+<!-- Сводка по прогулам -->
+<div id="attendanceSummaryBlock" style="margin-top:30px; display:none;">
+    <h3>Сводка по посещаемости</h3>
+    <p id="attendanceSummaryText">Загрузка...</p>
+    <button id="showAttendanceStatsBtn" style="padding:8px 18px; font-size:15px;">Подробнее о процентах посещаемости</button>
+</div>
         </div>
     </div>
 
@@ -834,6 +841,49 @@ async function renderAttendanceCalendar(user, year, month) {
 
     calendarDiv.innerHTML = html;
 }
+</script>
+<script>
+// Роли, которым доступна сводка
+const allowedSummaryRoles = [
+    'куратор', 'администратор', 'зам старосты', 'староста',
+    'curator', 'admin', 'deputy_headman', 'headman'
+];
+
+async function updateAttendanceSummary() {
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    if (!user) return;
+    const role = (user.roleName || user.role || '').toLowerCase();
+    if (!allowedSummaryRoles.includes(role)) return;
+
+    document.getElementById('attendanceSummaryBlock').style.display = '';
+
+    // Получаем все данные о посещаемости
+    let attendanceData = [];
+    try {
+        const res = await fetch('/absences');
+        if (res.ok) {
+            attendanceData = await res.json();
+        }
+    } catch (e) {
+        attendanceData = [];
+    }
+
+    // Считаем общее количество записей и количество "Присутствовал"
+    const total = attendanceData.length;
+    const present = attendanceData.filter(a => a.status === 'Присутствовал').length;
+    const percent = total > 0 ? Math.round((present / total) * 100) : 0;
+
+    document.getElementById('attendanceSummaryText').textContent =
+        `Общий процент посещаемости: ${percent}% (${present} из ${total})`;
+}
+
+// Кнопка перехода на страницу статистики
+document.getElementById('showAttendanceStatsBtn').onclick = function() {
+    window.location.href = 'attendance-stats.html';
+};
+
+// Показываем сводку только нужным ролям
+document.addEventListener('DOMContentLoaded', updateAttendanceSummary);
 </script>
 </body>
 </html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Статистика посещаемости</title>
+    <link rel="stylesheet" href="main.css">
+</head>
+<body>
+    <h2>Подробная статистика посещаемости</h2>
+    <div id="statsBlock">Загрузка...</div>
+    <button onclick="window.location.href='index.html'">Назад на главную</button>
+    <script>
+    // Доступ только для нужных ролей
+    const allowedSummaryRoles = [
+        'куратор', 'администратор', 'зам старосты', 'староста',
+        'curator', 'admin', 'deputy_headman', 'headman'
+    ];
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    const role = (user?.roleName || user?.role || '').toLowerCase();
+    if (!user || !allowedSummaryRoles.includes(role)) {
+        document.body.innerHTML = '<div style="color:red;text-align:center;margin-top:50px;font-size:1.5em;">У вас нет доступа к этой странице</div>';
+        throw new Error('Нет доступа');
+    }
+
+    async function renderStats() {
+        let attendanceData = [];
+        try {
+            const res = await fetch('/absences');
+            if (res.ok) {
+                attendanceData = await res.json();
+            }
+        } catch (e) {
+            attendanceData = [];
+        }
+        // Группируем по студентам
+        const byStudent = {};
+        attendanceData.forEach(a => {
+            if (!byStudent[a.student]) byStudent[a.student] = { total: 0, present: 0 };
+            byStudent[a.student].total++;
+            if (a.status === 'Присутствовал') byStudent[a.student].present++;
+        });
+        let html = '<table border="1" cellpadding="6"><tr><th>Студент</th><th>Всего отметок</th><th>Присутствовал</th><th>% посещаемости</th></tr>';
+        for (const student in byStudent) {
+            const s = byStudent[student];
+            const percent = s.total > 0 ? Math.round((s.present / s.total) * 100) : 0;
+            html += `<tr><td>${student}</td><td>${s.total}</td><td>${s.present}</td><td>${percent}%</td></tr>`;
+        }
+        html += '</table>';
+        document.getElementById('statsBlock').innerHTML = html;
+    }
+    renderStats();
+    </script>
+</body>
+</html>
