@@ -176,7 +176,7 @@
 
     document.addEventListener('DOMContentLoaded', fillSelects);
 
-    // Отправка формы явки
+    // Отправка формы явки с переходом на absences.html
     document.getElementById('attendanceForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         const form = e.target;
@@ -188,8 +188,7 @@
                 body: JSON.stringify(data)
             });
             if (res.ok) {
-                document.getElementById('message').textContent = 'Явка успешно отмечена!';
-                form.reset();
+                window.location.href = 'absences.html';
             } else {
                 document.getElementById('message').textContent = 'Ошибка при отправке!';
             }
