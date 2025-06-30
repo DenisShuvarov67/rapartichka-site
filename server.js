@@ -9,7 +9,6 @@ const app = express();
 
 const PORT = process.env.PORT || 6001;
 
-const ATTENDANCE_FILE = 'attendance.json'; // или нужный путь к файлу
 const USERS_FILE = path.join(__dirname, 'users.json');
 const ADMIN_CREDENTIALS_FILE = path.join(__dirname, 'admin_credentials.json');
 const LOGIN_HISTORY_FILE = path.join(__dirname, 'login_history.json');
@@ -25,9 +24,6 @@ const pool = new Pool({
 app.use(cors());
 app.use(express.json({ limit: '20mb' }));
 app.use(express.static(__dirname));
-
-// Добавьте эту строку для раздачи всех файлов из папки проекта:
-// app.use(express.static(__dirname));
 
 // Получение истории входов пользователя
 function getLoginHistory(username) {
@@ -131,7 +127,7 @@ app.post('/login', (req, res) => {
     });
 });
 
-// Получение данных посещаемости
+// Получение данных посещаемости из файла
 app.get('/attendance', (req, res) => {
     if (!fs.existsSync(ATTENDANCE_FILE)) {
         return res.status(404).json({ error: 'Файл посещаемости не найден' });
@@ -140,27 +136,17 @@ app.get('/attendance', (req, res) => {
     res.json(data);
 });
 
-// Добавление новой записи о посещаемости в базу данных
-app.post('/attendance', async (req, res) => {
-    const { date, student, subject, status, comment } = req.body;
-    try {
-        // student и subject — это id
-        const studentId = Number(student);
-        const subjectId = Number(subject);
-        // Проверяем, что такие id есть в базе
-        const studentResult = await pool.query('SELECT id FROM students WHERE id = $1', [studentId]);
-        const subjectResult = await pool.query('SELECT id FROM subjects WHERE id = $1', [subjectId]);
-        if (!studentResult.rows.length || !subjectResult.rows.length) {
-            return res.status(400).json({ error: 'Студент или предмет не найден' });
-        }
-        await pool.query(
-            'INSERT INTO attendance(date, student_id, subject_id, status, comment) VALUES($1, $2, $3, $4, $5)',
-            [date, studentId, subjectId, status, comment]
-        );
-        res.json({ success: true });
-    } catch (e) {
-        res.status(500).json({ error: 'Ошибка базы данных' });
+// Добавление новой записи о посещаемости в файл
+app.post('/attendance', (req, res) => {
+    const newRecord = req.body;
+    let data = [];
+    if (fs.existsSync(ATTENDANCE_FILE)) {
+        data = JSON.parse(fs.readFileSync(ATTENDANCE_FILE, 'utf8'));
     }
+    if (!Array.isArray(data)) data = [];
+    data.push(newRecord);
+    fs.writeFileSync(ATTENDANCE_FILE, JSON.stringify(data, null, 2));
+    res.json({ success: true });
 });
 
 // Получение данных о пропусках (теперь из attendance.json)
@@ -198,7 +184,7 @@ app.post('/absences', (req, res) => {
     res.json({ success: true });
 });
 
-// Удаление записи о пропуске
+// Удаление записи о пропуске из файла
 app.delete('/absences', (req, res) => {
     if (!fs.existsSync(ATTENDANCE_FILE)) {
         return res.status(404).json({ error: 'Файл attendance.json не найден' });
