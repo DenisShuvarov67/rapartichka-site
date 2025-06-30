@@ -154,12 +154,25 @@ app.post('/attendance', (req, res) => {
 });
 
 // Получение данных о пропусках (теперь из attendance.json)
-app.get('/absences', (req, res) => {
-    if (!fs.existsSync(ATTENDANCE_FILE)) {
-        return res.status(404).json({ error: 'Файл attendance.json не найден' });
+app.get('/absences', async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT 
+                attendance.id,
+                attendance.date,
+                students.name AS student,
+                subjects.name AS subject,
+                attendance.status,
+                attendance.comment
+            FROM attendance
+            LEFT JOIN students ON attendance.student_id = students.id
+            LEFT JOIN subjects ON attendance.subject_id = subjects.id
+            ORDER BY attendance.date DESC
+        `);
+        res.json(result.rows);
+    } catch (e) {
+        res.status(500).json({ error: 'Ошибка базы данных' });
     }
-    const data = JSON.parse(fs.readFileSync(ATTENDANCE_FILE, 'utf8'));
-    res.json(data);
 });
 
 // Добавление новой записи о пропуске (опционально)
