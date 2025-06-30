@@ -136,17 +136,26 @@ app.get('/attendance', (req, res) => {
     res.json(data);
 });
 
-// Добавление новой записи о посещаемости в файл
-app.post('/attendance', (req, res) => {
-    const newRecord = req.body;
-    let data = [];
-    if (fs.existsSync(ATTENDANCE_FILE)) {
-        data = JSON.parse(fs.readFileSync(ATTENDANCE_FILE, 'utf8'));
+// Добавление новой записи о посещаемости в базу данных
+app.post('/attendance', async (req, res) => {
+    const { date, student, subject, status, comment } = req.body;
+    try {
+        const studentId = Number(student);
+        const subjectId = Number(subject);
+        // Проверяем, что такие id есть в базе
+        const studentResult = await pool.query('SELECT id FROM students WHERE id = $1', [studentId]);
+        const subjectResult = await pool.query('SELECT id FROM subjects WHERE id = $1', [subjectId]);
+        if (!studentResult.rows.length || !subjectResult.rows.length) {
+            return res.status(400).json({ error: 'Студент или предмет не найден' });
+        }
+        await pool.query(
+            'INSERT INTO attendance(date, student_id, subject_id, status, comment) VALUES($1, $2, $3, $4, $5)',
+            [date, studentId, subjectId, status, comment]
+        );
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: 'Ошибка базы данных' });
     }
-    if (!Array.isArray(data)) data = [];
-    data.push(newRecord);
-    fs.writeFileSync(ATTENDANCE_FILE, JSON.stringify(data, null, 2));
-    res.json({ success: true });
 });
 
 // Получение данных о пропусках (теперь из attendance.json)
