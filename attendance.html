@@ -5,6 +5,60 @@
     <title>Посещаемость студента</title>
     <link rel="stylesheet" href="main.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        .sidebar {
+            position: fixed;
+            left: -220px;
+            top: 0;
+            width: 220px;
+            height: 100%;
+            background: #fff;
+            box-shadow: 2px 0 8px #0001;
+            transition: left 0.3s;
+            z-index: 1000;
+        }
+        .sidebar.open {
+            left: 0;
+        }
+        .sidebar-toggle {
+            position: fixed;
+            left: 10px;
+            top: 10px;
+            z-index: 1100;
+            background: #2980ef;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            font-size: 1.4em;
+            cursor: pointer;
+        }
+        .sidebar .logout-btn {
+            width: 100%;
+            text-align: left;
+            background: none;
+            border: none;
+            color: #c00;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        body.sidebar-open {
+            padding-left: 220px;
+            transition: padding-left 0.3s;
+        }
+        @media (max-width: 700px) {
+            body.sidebar-open {
+                padding-left: 0;
+            }
+            .sidebar {
+                width: 90vw;
+                left: -90vw;
+            }
+            .sidebar.open {
+                left: 0;
+            }
+        }
+    </style>
 </head>
 <body>
     
@@ -143,6 +197,25 @@
         } catch (error) {
             console.error('Ошибка при отправке:', error);
             document.getElementById('message').textContent = 'Ошибка соединения с сервером!';
+        }
+    });
+
+    // Открытие/закрытие сайдбара
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('sidebarToggleBtn');
+    toggleBtn.onclick = function() {
+        sidebar.classList.toggle('open');
+        document.body.classList.toggle('sidebar-open');
+    };
+    // Закрывать сайдбар при клике вне его (по желанию)
+    document.addEventListener('click', function(e) {
+        if (
+            sidebar.classList.contains('open') &&
+            !sidebar.contains(e.target) &&
+            e.target !== toggleBtn
+        ) {
+            sidebar.classList.remove('open');
+            document.body.classList.remove('sidebar-open');
         }
     });
     </script>
