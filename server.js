@@ -343,35 +343,36 @@ app.delete('/students', async (req, res) => {
     }
 });
 
-// Аналогично для предметов:
-app.get('/subjects', (req, res) => {
-    if (!fs.existsSync(SUBJECTS_FILE)) return res.json([]);
-    const subjects = JSON.parse(fs.readFileSync(SUBJECTS_FILE, 'utf8'));
-    res.json(subjects);
+// Получить список предметов из PostgreSQL
+app.get('/subjects', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT id, name FROM subjects ORDER BY name');
+        res.json(result.rows);
+    } catch (e) {
+        res.status(500).json({ error: 'Ошибка базы данных' });
+    }
 });
 
-app.post('/subjects', (req, res) => {
+// Добавить предмет в PostgreSQL
+app.post('/subjects', async (req, res) => {
     const { name } = req.body;
-    let subjects = [];
-    if (fs.existsSync(SUBJECTS_FILE)) {
-        subjects = JSON.parse(fs.readFileSync(SUBJECTS_FILE, 'utf8'));
+    try {
+        await pool.query('INSERT INTO subjects(name) VALUES($1) ON CONFLICT DO NOTHING', [name]);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: 'Ошибка базы данных' });
     }
-    if (!subjects.includes(name)) {
-        subjects.push(name);
-        fs.writeFileSync(SUBJECTS_FILE, JSON.stringify(subjects, null, 2));
-    }
-    res.json({ success: true });
 });
 
-app.delete('/subjects', (req, res) => {
-    const { name } = req.body;
-    let subjects = [];
-    if (fs.existsSync(SUBJECTS_FILE)) {
-        subjects = JSON.parse(fs.readFileSync(SUBJECTS_FILE, 'utf8'));
+// Удалить предмет из PostgreSQL
+app.delete('/subjects', async (req, res) => {
+    const { id } = req.body;
+    try {
+        await pool.query('DELETE FROM subjects WHERE id=$1', [id]);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: 'Ошибка базы данных' });
     }
-    subjects = subjects.filter(s => s !== name);
-    fs.writeFileSync(SUBJECTS_FILE, JSON.stringify(subjects, null, 2));
-    res.json({ success: true });
 });
 
 // Тестирование подключения к базе данных
