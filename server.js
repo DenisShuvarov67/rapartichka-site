@@ -128,13 +128,13 @@ app.post('/login', (req, res) => {
 });
 
 // Получение данных посещаемости из файла
-app.get('/attendance', (req, res) => {
-    if (!fs.existsSync(ATTENDANCE_FILE)) {
-        return res.status(404).json({ error: 'Файл посещаемости не найден' });
-    }
-    const data = JSON.parse(fs.readFileSync(ATTENDANCE_FILE, 'utf8'));
-    res.json(data);
-});
+// app.get('/attendance', (req, res) => {
+//     if (!fs.existsSync(ATTENDANCE_FILE)) {
+//         return res.status(404).json({ error: 'Файл посещаемости не найден' });
+//     }
+//     const data = JSON.parse(fs.readFileSync(ATTENDANCE_FILE, 'utf8'));
+//     res.json(data);
+// });
 
 // Добавление новой записи о посещаемости в базу данных
 app.post('/attendance', async (req, res) => {
@@ -181,35 +181,35 @@ app.get('/absences', async (req, res) => {
 });
 
 // Добавление новой записи о пропуске (опционально)
-app.post('/absences', (req, res) => {
-    const newRecord = req.body;
-    let data = [];
-    if (fs.existsSync(ABSENCES_FILE)) {
-        data = JSON.parse(fs.readFileSync(ABSENCES_FILE, 'utf8'));
-    }
-    if (!Array.isArray(data)) data = [];
-    data.push(newRecord);
-    fs.writeFileSync(ABSENCES_FILE, JSON.stringify(data, null, 2));
-    res.json({ success: true });
-});
+// app.post('/absences', (req, res) => {
+//     const newRecord = req.body;
+//     let data = [];
+//     if (fs.existsSync(ABSENCES_FILE)) {
+//         data = JSON.parse(fs.readFileSync(ABSENCES_FILE, 'utf8'));
+//     }
+//     if (!Array.isArray(data)) data = [];
+//     data.push(newRecord);
+//     fs.writeFileSync(ABSENCES_FILE, JSON.stringify(data, null, 2));
+//     res.json({ success: true });
+// });
 
 // Удаление записи о пропуске из файла
-app.delete('/absences', (req, res) => {
-    if (!fs.existsSync(ATTENDANCE_FILE)) {
-        return res.status(404).json({ error: 'Файл attendance.json не найден' });
-    }
-    const toDelete = req.body;
-    let data = JSON.parse(fs.readFileSync(ATTENDANCE_FILE, 'utf8'));
-    data = data.filter(row => !(
-        row.date === toDelete.date &&
-        row.student === toDelete.student &&
-        row.subject === toDelete.subject &&
-        row.status === toDelete.status &&
-        (row.comment || '') === (toDelete.comment || '')
-    ));
-    fs.writeFileSync(ATTENDANCE_FILE, JSON.stringify(data, null, 2));
-    res.json({ success: true });
-});
+// app.delete('/absences', (req, res) => {
+//     if (!fs.existsSync(ATTENDANCE_FILE)) {
+//         return res.status(404).json({ error: 'Файл attendance.json не найден' });
+//     }
+//     const toDelete = req.body;
+//     let data = JSON.parse(fs.readFileSync(ATTENDANCE_FILE, 'utf8'));
+//     data = data.filter(row => !(
+//         row.date === toDelete.date &&
+//         row.student === toDelete.student &&
+//         row.subject === toDelete.subject &&
+//         row.status === toDelete.status &&
+//         (row.comment || '') === (toDelete.comment || '')
+//     ));
+//     fs.writeFileSync(ATTENDANCE_FILE, JSON.stringify(data, null, 2));
+//     res.json({ success: true });
+// });
 
 // Регистрация нового пользователя
 app.post('/register', (req, res) => {
