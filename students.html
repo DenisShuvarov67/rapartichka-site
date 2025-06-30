@@ -194,48 +194,50 @@ input[type="text"]:focus {
         }
     };
 
-    // Загружаем список при открытии страницы
+    // Загружаем список студентов при открытии страницы
     document.addEventListener('DOMContentLoaded', fetchStudents);
 
     // Работа с предметами
-    function getSubjects() {
-        return JSON.parse(localStorage.getItem('subjects') || '[]');
-    }
-    function setSubjects(subjects) {
-        localStorage.setItem('subjects', JSON.stringify(subjects));
-    }
-    function updateSubjectList() {
+    async function fetchSubjects() {
+        const res = await fetch('/subjects');
+        const subjects = await res.json();
         const list = document.getElementById('subjectList');
         list.innerHTML = '';
-        getSubjects().forEach((name, idx) => {
+        subjects.forEach(subject => {
             const li = document.createElement('li');
-            li.textContent = name + ' ';
+            li.textContent = subject.name + ' ';
             const del = document.createElement('button');
             del.textContent = 'Удалить';
-            del.onclick = () => {
-                const subjects = getSubjects();
-                subjects.splice(idx, 1);
-                setSubjects(subjects);
-                updateSubjectList();
+            del.onclick = async () => {
+                await fetch('/subjects', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: subject.id })
+                });
+                await fetchSubjects();
             };
             li.appendChild(del);
             list.appendChild(li);
         });
     }
-    document.addEventListener('DOMContentLoaded', updateSubjectList);
-    document.getElementById('addSubjectBtn').onclick = function() {
+
+    // Добавление предмета
+    document.getElementById('addSubjectBtn').onclick = async function() {
         const input = document.getElementById('newSubjectInput');
         const name = input.value.trim();
         if (name) {
-            const subjects = getSubjects();
-            if (!subjects.includes(name)) {
-                subjects.push(name);
-                setSubjects(subjects);
-                updateSubjectList();
-            }
+            await fetch('/subjects', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name })
+            });
+            await fetchSubjects();
             input.value = '';
         }
     };
+
+    // Загружаем список предметов при открытии страницы
+    document.addEventListener('DOMContentLoaded', fetchSubjects);
 
     // Проверка, был ли пользователь отключён администратором
     function checkKicked() {
