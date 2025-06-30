@@ -8,61 +8,60 @@
     <style>
         .sidebar {
             position: fixed;
-            left: -220px;
             top: 0;
+            left: 0;
             width: 220px;
             height: 100%;
-            background: #fff;
-            box-shadow: 2px 0 8px #0001;
-            transition: left 0.3s;
+            background: #23272f;
+            color: #fff;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.08);
+            transition: transform 0.3s cubic-bezier(.4,0,.2,1);
             z-index: 1000;
+            overflow-y: auto;
+            transform: translateX(-100%);
         }
         .sidebar.open {
-            left: 0;
+            transform: translateX(0);
         }
         .sidebar-toggle {
             position: fixed;
-            left: 10px;
-            top: 10px;
-            z-index: 1100;
-            background: #2980ef;
-            color: #fff;
+            top: 18px;
+            left: 18px;
+            z-index: 2001;
+            background: #23272f;
+            color: #36d46c;
             border: none;
-            border-radius: 4px;
-            padding: 8px 12px;
-            font-size: 1.4em;
+            font-size: 28px;
+            border-radius: 6px;
+            padding: 4px 8px;
             cursor: pointer;
+            transition: background 0.2s;
         }
-        .sidebar .logout-btn {
-            width: 100%;
-            text-align: left;
-            background: none;
-            border: none;
-            color: #c00;
-            padding: 10px 20px;
-            cursor: pointer;
+        .sidebar-toggle:hover {
+            background: #2fa85a;
+            color: #fff;
         }
         body.sidebar-open {
-            padding-left: 220px;
-            transition: padding-left 0.3s;
+            margin-left: 220px;
+            transition: margin-left 0.3s;
         }
-        @media (max-width: 700px) {
+        @media (max-width: 900px) {
             body.sidebar-open {
-                padding-left: 0;
+                margin-left: 0;
             }
             .sidebar {
                 width: 90vw;
-                left: -90vw;
+                left: 0;
+                transform: translateX(-100%);
             }
             .sidebar.open {
-                left: 0;
+                transform: translateX(0);
             }
         }
     </style>
 </head>
 <body>
-    
-     <button class="sidebar-toggle" id="sidebarToggleBtn" aria-label="Открыть меню">
+    <button class="sidebar-toggle" id="sidebarToggleBtn" aria-label="Открыть меню">
         <span>&#9776;</span>
     </button>
     <!-- Сайдбар -->
@@ -203,11 +202,12 @@
     // Открытие/закрытие сайдбара
     const sidebar = document.getElementById('sidebar');
     const toggleBtn = document.getElementById('sidebarToggleBtn');
-    toggleBtn.onclick = function() {
+    toggleBtn.onclick = function(e) {
+        e.stopPropagation();
         sidebar.classList.toggle('open');
         document.body.classList.toggle('sidebar-open');
     };
-    // Закрывать сайдбар при клике вне его (по желанию)
+    // Закрывать сайдбар при клике вне его
     document.addEventListener('click', function(e) {
         if (
             sidebar.classList.contains('open') &&
