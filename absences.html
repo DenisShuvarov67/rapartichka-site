@@ -372,21 +372,16 @@
 
         fillDateSelect(data, month);
 
-        // Заменено:
-        renderMainCards(data, month);
         renderAttendanceTimeline(data, month);
 
         monthSelect.onchange = () => {
             fillDateSelect(data, monthSelect.value);
-            renderMainCards(data, monthSelect.value);
             renderAttendanceTimeline(data, monthSelect.value);
         };
         document.getElementById('studentSelect').onchange = () => {
-            renderMainCards(data, monthSelect.value);
             renderAttendanceTimeline(data, monthSelect.value);
         };
         document.getElementById('dateSelect').onchange = () => {
-            renderMainCards(data, monthSelect.value);
             renderAttendanceTimeline(data, monthSelect.value);
         };
     }
