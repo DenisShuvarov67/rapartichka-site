@@ -403,6 +403,19 @@ app.get('/db-test', async (req, res) => {
     }
 });
 
+// Удаление записи о посещаемости по id
+app.delete('/absences', async (req, res) => {
+    const { id } = req.body;
+    if (!id) return res.status(400).json({ error: 'Не передан id' });
+    try {
+        await pool.query('DELETE FROM attendance WHERE id = $1', [id]);
+        res.json({ success: true });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: 'Ошибка базы данных' });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Сервер запущен на https://rapartichka-site.onrender.com`);
 });
