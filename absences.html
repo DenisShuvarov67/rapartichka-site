@@ -119,15 +119,16 @@
         return 0;
     }
 
+    // Исправленный массив месяцев
     const monthNames = [
-        'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь',
-        'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь'
+        'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+        'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
     ];
 
     function getMonthFromDate(dateStr) {
         const [year, month, day] = dateStr.split('-').map(Number);
         if (!year || !month || !day) return null;
-        return month - 1;
+        return month - 1; // 0-11
     }
 
     function fillMonthSelect(data) {
@@ -137,15 +138,14 @@
         data.forEach(row => {
             if (row.date) {
                 const m = getMonthFromDate(row.date);
-                if (m !== null && (m >= 8 || m <= 5)) monthsSet.add(m);
+                if (m !== null) monthsSet.add(m);
             }
         });
-        const months = Array.from(monthsSet).sort((a, b) => ((a + 4) % 12) - ((b + 4) % 12));
+        const months = Array.from(monthsSet).sort((a, b) => a - b);
         months.forEach(m => {
             const option = document.createElement('option');
-            let idx = m >= 8 ? m - 8 : m + 4;
             option.value = m;
-            option.textContent = monthNames[idx];
+            option.textContent = monthNames[m];
             select.appendChild(option);
         });
     }
@@ -193,68 +193,23 @@
         });
     }
 
-    // --- ДОБАВЛЕНО: функция удаления явки ---
-    async function deleteAbsence(index, month) {
-        if (!confirm('Удалить эту запись?')) return;
-        try {
-            const res = await fetch('https://rapartichka-site.onrender.com/absences', { method: 'GET' });
-            if (!res.ok) throw new Error('Ошибка загрузки данных');
-            let data = await res.json();
-
-            // Фильтруем по месяцу
-            const filtered = data.filter(row => {
-                if (!row.date) return false;
-                const m = getMonthFromDate(row.date);
-                return m === Number(month);
-            });
-
-            // Получаем запись для удаления
-            const toDelete = filtered[index];
-            if (!toDelete) return;
-
-            // Отправляем запрос на удаление
-            const delRes = await fetch('https://rapartichka-site.onrender.com/absences', {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(toDelete)
-            });
-            if (!delRes.ok) throw new Error('Ошибка удаления');
-
-            // Получаем текущего пользователя
-            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-            addActionLog(currentUser.username, `Удалил явку для ${toDelete.student} по предмету "${toDelete.subject}" (${toDelete.date})`);
-
-            // Перезагружаем таблицу
-            await loadAbsences();
-        } catch (e) {
-            alert('Ошибка удаления');
-            console.error(e);
-        }
-    }
-    // --- КОНЕЦ ДОБАВЛЕНИЯ ---
-
     function renderMainTable(data, month) {
-        // Получаем текущего пользователя
         const currentUser = JSON.parse(localStorage.getItem('currentUser'));
         const allowedRoles = ['headman', 'deputy_headman', 'curator', 'admin', 'администратор', 'староста', 'зам старосты', 'куратор'];
-
-        // Проверяем, есть ли у пользователя нужная роль
         function canDelete() {
             if (!currentUser) return false;
             const role = (currentUser.role || '').toLowerCase();
             const roleName = (currentUser.roleName || '').toLowerCase();
             return allowedRoles.includes(role) || allowedRoles.includes(roleName);
         }
-
         const selectedDate = document.getElementById('dateSelect')?.value || '';
         const selectedStudent = document.getElementById('studentSelect')?.value || '';
-
         const filtered = data.filter(row => {
             if (!row.date) return false;
             const m = getMonthFromDate(row.date);
             if (m !== Number(month)) return false;
             if (selectedDate && row.date !== selectedDate) return false;
-            if (selectedStudent && row.student !== selectedStudent) return false;
+            if (selectedStudent && row.student && row.student.toLowerCase() !== selectedStudent.toLowerCase()) return false;
             return true;
         });
 
@@ -369,7 +324,6 @@
 
     // --- изменённая функция удаления ---
     async function deleteAbsence(index, month, confirmed = false) {
-        // Проверка роли
         const currentUser = JSON.parse(localStorage.getItem('currentUser'));
         const allowedRoles = ['headman', 'deputy_headman', 'curator', 'admin', 'администратор', 'староста', 'зам старосты', 'куратор'];
         function canDelete() {
@@ -382,40 +336,28 @@
             alert('Удалять явку могут только староста, зам старосты, куратор или администратор!');
             return;
         }
-
         if (!confirmed) {
             showDeleteModal(index, month);
             return;
         }
         try {
-            const res = await fetch('https://rapartichka-site.onrender.com/absences', { method: 'GET' });
+            const res = await fetch('https://rapartichka-site.onrender.com/absences');
             if (!res.ok) throw new Error('Ошибка загрузки данных');
             let data = await res.json();
-
-            // Фильтруем по месяцу
             const filtered = data.filter(row => {
                 if (!row.date) return false;
                 const m = getMonthFromDate(row.date);
                 return m === Number(month);
             });
-
-            // Получаем запись для удаления
             const toDelete = filtered[index];
             if (!toDelete) return;
-
-            // Отправляем запрос на удаление
             const delRes = await fetch('https://rapartichka-site.onrender.com/absences', {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(toDelete)
             });
             if (!delRes.ok) throw new Error('Ошибка удаления');
-
-            // Получаем текущего пользователя
-            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
             addActionLog(currentUser.username, `Удалил явку для ${toDelete.student} по предмету "${toDelete.subject}" (${toDelete.date})`);
-
-            // Перезагружаем таблицу
             await loadAbsences();
         } catch (e) {
             alert('Ошибка удаления');
