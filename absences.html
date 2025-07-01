@@ -50,6 +50,66 @@
         .status-late { color: #f39c12; }
         .status-sick { color: #2980ef; }
         .status-excused { color: #8e44ad; }
+
+        .attendance-timeline {
+            position: relative;
+            margin: 40px auto 0 auto;
+            max-width: 600px;
+            padding-left: 32px;
+        }
+        .attendance-timeline::before {
+            content: '';
+            position: absolute;
+            left: 18px;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: #444;
+            border-radius: 2px;
+        }
+        .timeline-item {
+            position: relative;
+            margin-bottom: 36px;
+            padding-left: 36px;
+        }
+        .timeline-icon {
+            position: absolute;
+            left: -2px;
+            top: 0;
+            width: 36px;
+            height: 36px;
+            background: #23262C;
+            border-radius: 50%;
+            border: 3px solid #27ae60;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4em;
+            color: #fff;
+            box-shadow: 0 2px 8px #0002;
+        }
+        .timeline-item.status-absent .timeline-icon { border-color: #e74c3c; color: #e74c3c; }
+        .timeline-item.status-late .timeline-icon { border-color: #f39c12; color: #f39c12; }
+        .timeline-item.status-sick .timeline-icon { border-color: #2980ef; color: #2980ef; }
+        .timeline-item.status-excused .timeline-icon { border-color: #8e44ad; color: #8e44ad; }
+        .timeline-item.status-present .timeline-icon { border-color: #27ae60; color: #27ae60; }
+        .timeline-content {
+            background: #23262C;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px 0 #0003;
+            padding: 18px 24px;
+            color: #fff;
+            margin-left: 16px;
+        }
+        .timeline-content strong {
+            color: #b8bfc9;
+            min-width: 110px;
+            display: inline-block;
+        }
+        .timeline-content .comment {
+            color: #ffd700;
+            font-style: italic;
+        }
     </style>
     
 </head>
@@ -247,6 +307,55 @@
         document.getElementById('mainTable').innerHTML = html;
     }
 
+    function renderAttendanceTimeline(data, month) {
+        const selectedDate = document.getElementById('dateSelect')?.value || '';
+        const selectedStudent = document.getElementById('studentSelect')?.value || '';
+        const filtered = data.filter(row => {
+            if (!row.date) return false;
+            const m = getMonthFromDate(row.date);
+            if (m !== Number(month)) return false;
+            if (selectedDate && row.date !== selectedDate) return false;
+            if (selectedStudent && row.student && row.student.toLowerCase() !== selectedStudent.toLowerCase()) return false;
+            return true;
+        });
+
+        function getStatusIcon(status) {
+            if (status === 'Присутствовал') return 'fa-check-circle';
+            if (status === 'Отсутствовал') return 'fa-times-circle';
+            if (status === 'Опоздал') return 'fa-clock';
+            if (status === 'Больничный') return 'fa-thermometer-half';
+            if (status === 'Уважительная причина') return 'fa-user-shield';
+            return 'fa-question-circle';
+        }
+
+        let html = `<div class="attendance-timeline">`;
+        if (!filtered.length) {
+            html += `<div style="text-align:center;">Нет данных</div>`;
+        } else {
+            filtered.forEach(row => {
+                const statusClass = row.status ? 'status-' + row.status.toLowerCase() : '';
+                const missedHours = getMissedHours(row.status);
+                html += `
+                <div class="timeline-item ${statusClass}">
+                    <div class="timeline-icon">
+                        <i class="fas ${getStatusIcon(row.status)}"></i>
+                    </div>
+                    <div class="timeline-content">
+                        <div><strong>Дата:</strong> ${row.date || ''}</div>
+                        <div><strong>ФИО:</strong> ${row.student || ''}</div>
+                        <div><strong>Предмет:</strong> ${row.subject || ''}</div>
+                        <div><strong>Статус:</strong> <span>${row.status || ''}</span></div>
+                        <div><strong>Комментарий:</strong> <span class="comment">${row.comment || ''}</span></div>
+                        <div><strong>Пропущено часов:</strong> ${missedHours}</div>
+                    </div>
+                </div>
+                `;
+            });
+        }
+        html += `</div>`;
+        document.getElementById('mainTable').innerHTML = html;
+    }
+
     async function loadAbsences() {
         const res = await fetch('https://rapartichka-site.onrender.com/absences');
         const data = await res.json();
@@ -265,16 +374,20 @@
 
         // Заменено:
         renderMainCards(data, month);
+        renderAttendanceTimeline(data, month);
 
         monthSelect.onchange = () => {
             fillDateSelect(data, monthSelect.value);
             renderMainCards(data, monthSelect.value);
+            renderAttendanceTimeline(data, monthSelect.value);
         };
         document.getElementById('studentSelect').onchange = () => {
             renderMainCards(data, monthSelect.value);
+            renderAttendanceTimeline(data, monthSelect.value);
         };
         document.getElementById('dateSelect').onchange = () => {
             renderMainCards(data, monthSelect.value);
+            renderAttendanceTimeline(data, monthSelect.value);
         };
     }
     document.addEventListener('DOMContentLoaded', loadAbsences);
