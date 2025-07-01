@@ -209,6 +209,7 @@
             const m = getMonthFromDate(row.date);
             if (m !== Number(month)) return false;
             if (selectedDate && row.date !== selectedDate) return false;
+            // Исправлено: если фильтр "Студент" не выбран, показываем всех
             if (selectedStudent && row.student && row.student.toLowerCase() !== selectedStudent.toLowerCase()) return false;
             return true;
         });
