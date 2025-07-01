@@ -193,7 +193,7 @@
         });
     }
 
-    function renderMainTable(data, month) {
+    function renderMainCards(data, month) {
         const currentUser = JSON.parse(localStorage.getItem('currentUser'));
         const allowedRoles = ['headman', 'deputy_headman', 'curator', 'admin', 'администратор', 'староста', 'зам старосты', 'куратор'];
         function canDelete() {
@@ -209,28 +209,13 @@
             const m = getMonthFromDate(row.date);
             if (m !== Number(month)) return false;
             if (selectedDate && row.date !== selectedDate) return false;
-            // Исправлено: если фильтр "Студент" не выбран, показываем всех
             if (selectedStudent && row.student && row.student.toLowerCase() !== selectedStudent.toLowerCase()) return false;
             return true;
         });
 
-        let html = `
-    <table class="attendance-table" style="width:100%;font-size:1.1em;">
-        <thead>
-            <tr>
-                <th>Дата</th>
-                <th>ФИО студента</th>
-                <th>Предмет</th>
-                <th>Статус</th>
-                <th>Комментарий</th>
-                <th>Пропущено часов</th>
-                <th>Действие</th>
-            </tr>
-        </thead>
-        <tbody>
-    `;
+        let html = `<div class="attendance-list">`;
         if (!filtered.length) {
-            html += `<tr><td colspan="7" style="text-align:center;">Нет данных</td></tr>`;
+            html += `<div style="text-align:center;">Нет данных</div>`;
         } else {
             filtered.forEach((row, idx) => {
                 let statusClass = '';
@@ -243,23 +228,21 @@
                 const missedHours = getMissedHours(row.status);
 
                 html += `
-                <tr>
-                    <td>${row.date || ''}</td>
-                    <td>${row.student || ''}</td>
-                    <td>${row.subject || ''}</td>
-                    <td class="${statusClass}">${row.status || ''}</td>
-                    <td>${row.comment || ''}</td>
-                    <td>${missedHours}</td>
-                    <td>
-                        ${canDelete() ? `<button onclick="showDeleteModal(${idx}, ${month})" style="color:#e74c3c; background:none; border:none; cursor:pointer;">
-                            <i class="fas fa-trash"></i>
-                        </button>` : ''}
-                    </td>
-                </tr>
-            `;
+                <div class="attendance-card">
+                    <div><strong>Дата:</strong> ${row.date || ''}</div>
+                    <div><strong>ФИО:</strong> ${row.student || ''}</div>
+                    <div><strong>Предмет:</strong> ${row.subject || ''}</div>
+                    <div><strong>Статус:</strong> <span class="${statusClass}">${row.status || ''}</span></div>
+                    <div><strong>Комментарий:</strong> <span class="comment">${row.comment || ''}</span></div>
+                    <div><strong>Пропущено часов:</strong> ${missedHours}</div>
+                    ${canDelete() ? `<button onclick="showDeleteModal(${idx}, ${month})" style="color:#e74c3c; background:none; border:none; cursor:pointer; margin-top:10px;">
+                        <i class="fas fa-trash"></i> Удалить
+                    </button>` : ''}
+                </div>
+                `;
             });
         }
-        html += '</tbody></table>';
+        html += `</div>`;
 
         document.getElementById('mainTable').innerHTML = html;
     }
@@ -268,11 +251,9 @@
         const res = await fetch('https://rapartichka-site.onrender.com/absences');
         const data = await res.json();
 
-        // Заполняем фильтры
         fillMonthSelect(data);
         fillStudentSelect(data);
 
-        // Получаем выбранный месяц (по умолчанию первый)
         const monthSelect = document.getElementById('monthSelect');
         let month = monthSelect.value;
         if (!month && monthSelect.options.length > 0) {
@@ -280,22 +261,20 @@
             monthSelect.value = month;
         }
 
-        // Заполняем даты для выбранного месяца
         fillDateSelect(data, month);
 
-        // Рисуем таблицу
-        renderMainTable(data, month);
+        // Заменено:
+        renderMainCards(data, month);
 
-        // Обработчики фильтров
         monthSelect.onchange = () => {
             fillDateSelect(data, monthSelect.value);
-            renderMainTable(data, monthSelect.value);
+            renderMainCards(data, monthSelect.value);
         };
         document.getElementById('studentSelect').onchange = () => {
-            renderMainTable(data, monthSelect.value);
+            renderMainCards(data, monthSelect.value);
         };
         document.getElementById('dateSelect').onchange = () => {
-            renderMainTable(data, monthSelect.value);
+            renderMainCards(data, monthSelect.value);
         };
     }
     document.addEventListener('DOMContentLoaded', loadAbsences);
