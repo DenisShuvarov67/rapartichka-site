@@ -110,6 +110,55 @@
             color: #ffd700;
             font-style: italic;
         }
+
+        .month-section {
+            margin-bottom: 36px;
+        }
+        .month-title {
+            font-size: 1.2em;
+            color: #ffd700;
+            margin: 18px 0 12px 0;
+            font-weight: bold;
+        }
+        .card-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+        }
+        .attendance-card {
+            background: #23262C;
+            border-radius: 14px;
+            box-shadow: 0 2px 12px 0 #0003;
+            padding: 18px 22px 14px 22px;
+            min-width: 260px;
+            max-width: 340px;
+            width: 100%;
+            color: #fff;
+            text-align: left;
+            border-left: 6px solid #27ae60;
+            margin-bottom: 0;
+            transition: box-shadow 0.2s;
+            position: relative;
+        }
+        .attendance-card .status-present { color: #27ae60; }
+        .attendance-card .status-absent { color: #e74c3c; }
+        .attendance-card .status-late { color: #f39c12; }
+        .attendance-card .status-sick { color: #2980ef; }
+        .attendance-card .status-excused { color: #8e44ad; }
+        .attendance-card strong {
+            display: inline-block;
+            min-width: 90px;
+            color: #b8bfc9;
+        }
+        .attendance-card .comment {
+            color: #ffd700;
+            font-style: italic;
+        }
+        .attendance-card .status-icon {
+            font-size: 1.2em;
+            margin-right: 7px;
+            vertical-align: middle;
+        }
     </style>
 </head>
 <body>
@@ -209,19 +258,31 @@
         });
     }
 
-    function renderAttendanceTimeline(data) {
+    function getStatusIcon(status) {
+        if (status === 'Присутствовал') return 'fa-check-circle';
+        if (status === 'Отсутствовал') return 'fa-times-circle';
+        if (status === 'Опоздал') return 'fa-clock';
+        if (status === 'Больничный') return 'fa-thermometer-half';
+        if (status === 'Уважительная причина') return 'fa-user-shield';
+        return 'fa-question-circle';
+    }
+
+    // Группировка по месяцу
+    function groupByMonth(data) {
+        const groups = {};
+        data.forEach(row => {
+            if (!row.date) return;
+            const month = row.date.slice(0, 7);
+            if (!groups[month]) groups[month] = [];
+            groups[month].push(row);
+        });
+        return groups;
+    }
+
+    function renderAttendanceCardsByMonth(data) {
         const filterStudent = document.getElementById('filterStudent').value;
         const filterMonth = document.getElementById('filterMonth').value;
         const filterDate = document.getElementById('filterDate').value;
-
-        function getStatusIcon(status) {
-            if (status === 'Присутствовал') return 'fa-check-circle';
-            if (status === 'Отсутствовал') return 'fa-times-circle';
-            if (status === 'Опоздал') return 'fa-clock';
-            if (status === 'Больничный') return 'fa-thermometer-half';
-            if (status === 'Уважительная причина') return 'fa-user-shield';
-            return 'fa-question-circle';
-        }
 
         let filtered = data;
         if (filterStudent) {
@@ -234,31 +295,38 @@
             filtered = filtered.filter(row => row.date === filterDate);
         }
 
-        let html = `<div class="attendance-timeline">`;
-        if (!filtered.length) {
-            html += `<div style="text-align:center;">Нет данных</div>`;
+        const grouped = groupByMonth(filtered);
+        let html = '';
+
+        const monthKeys = Object.keys(grouped).sort().reverse();
+        if (!monthKeys.length) {
+            html = `<div style="text-align:center;">Нет данных</div>`;
         } else {
-            filtered.forEach(row => {
-                const statusClass = row.status ? 'status-' + row.status.toLowerCase() : '';
-                const missedHours = getMissedHours(row.status);
-                html += `
-                <div class="timeline-item ${statusClass}">
-                    <div class="timeline-icon">
-                        <i class="fas ${getStatusIcon(row.status)}"></i>
-                    </div>
-                    <div class="timeline-content">
+            monthKeys.forEach(month => {
+                const [y, m] = month.split('-');
+                html += `<div class="month-section">
+                    <div class="month-title">${m}.${y}</div>
+                    <div class="card-list">`;
+                grouped[month].forEach(row => {
+                    const statusClass = row.status ? 'status-' + row.status.toLowerCase() : '';
+                    const missedHours = getMissedHours(row.status);
+                    html += `
+                    <div class="attendance-card ${statusClass}">
                         <div><strong>Дата:</strong> ${row.date || ''}</div>
                         <div><strong>ФИО:</strong> ${row.student || ''}</div>
                         <div><strong>Предмет:</strong> ${row.subject || ''}</div>
-                        <div><strong>Статус:</strong> <span>${row.status || ''}</span></div>
+                        <div><strong>Статус:</strong>
+                            <span class="status-icon"><i class="fas ${getStatusIcon(row.status)}"></i></span>
+                            <span class="${statusClass}">${row.status || ''}</span>
+                        </div>
                         <div><strong>Комментарий:</strong> <span class="comment">${row.comment || ''}</span></div>
                         <div><strong>Пропущено часов:</strong> ${missedHours}</div>
                     </div>
-                </div>
-                `;
+                    `;
+                });
+                html += `</div></div>`;
             });
         }
-        html += `</div>`;
         document.getElementById('mainTable').innerHTML = html;
     }
 
@@ -267,20 +335,20 @@
         allAbsences = await res.json();
         fillStudentSelect(allAbsences);
         fillMonthSelect(allAbsences);
-        renderAttendanceTimeline(allAbsences);
+        renderAttendanceCardsByMonth(allAbsences);
     }
     document.addEventListener('DOMContentLoaded', loadAbsences);
 
     // Обработчики фильтров
     document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('filterStudent').addEventListener('change', () => renderAttendanceTimeline(allAbsences));
-        document.getElementById('filterMonth').addEventListener('change', () => renderAttendanceTimeline(allAbsences));
-        document.getElementById('filterDate').addEventListener('input', () => renderAttendanceTimeline(allAbsences));
+        document.getElementById('filterStudent').addEventListener('change', () => renderAttendanceCardsByMonth(allAbsences));
+        document.getElementById('filterMonth').addEventListener('change', () => renderAttendanceCardsByMonth(allAbsences));
+        document.getElementById('filterDate').addEventListener('input', () => renderAttendanceCardsByMonth(allAbsences));
         document.getElementById('clearFiltersBtn').addEventListener('click', () => {
             document.getElementById('filterStudent').value = '';
             document.getElementById('filterMonth').value = '';
             document.getElementById('filterDate').value = '';
-            renderAttendanceTimeline(allAbsences);
+            renderAttendanceCardsByMonth(allAbsences);
         });
     });
 
