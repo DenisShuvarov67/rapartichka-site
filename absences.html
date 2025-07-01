@@ -253,60 +253,6 @@
         });
     }
 
-    function renderMainCards(data, month) {
-        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-        const allowedRoles = ['headman', 'deputy_headman', 'curator', 'admin', 'администратор', 'староста', 'зам старосты', 'куратор'];
-        function canDelete() {
-            if (!currentUser) return false;
-            const role = (currentUser.role || '').toLowerCase();
-            const roleName = (currentUser.roleName || '').toLowerCase();
-            return allowedRoles.includes(role) || allowedRoles.includes(roleName);
-        }
-        const selectedDate = document.getElementById('dateSelect')?.value || '';
-        const selectedStudent = document.getElementById('studentSelect')?.value || '';
-        const filtered = data.filter(row => {
-            if (!row.date) return false;
-            const m = getMonthFromDate(row.date);
-            if (m !== Number(month)) return false;
-            if (selectedDate && row.date !== selectedDate) return false;
-            if (selectedStudent && row.student && row.student.toLowerCase() !== selectedStudent.toLowerCase()) return false;
-            return true;
-        });
-
-        let html = `<div class="attendance-list">`;
-        if (!filtered.length) {
-            html += `<div style="text-align:center;">Нет данных</div>`;
-        } else {
-            filtered.forEach((row, idx) => {
-                let statusClass = '';
-                if (row.status === 'Присутствовал') statusClass = 'status-present';
-                else if (row.status === 'Отсутствовал') statusClass = 'status-absent';
-                else if (row.status === 'Опоздал') statusClass = 'status-late';
-                else if (row.status === 'Больничный') statusClass = 'status-sick';
-                else if (row.status === 'Уважительная причина') statusClass = 'status-excused';
-
-                const missedHours = getMissedHours(row.status);
-
-                html += `
-                <div class="attendance-card">
-                    <div><strong>Дата:</strong> ${row.date || ''}</div>
-                    <div><strong>ФИО:</strong> ${row.student || ''}</div>
-                    <div><strong>Предмет:</strong> ${row.subject || ''}</div>
-                    <div><strong>Статус:</strong> <span class="${statusClass}">${row.status || ''}</span></div>
-                    <div><strong>Комментарий:</strong> <span class="comment">${row.comment || ''}</span></div>
-                    <div><strong>Пропущено часов:</strong> ${missedHours}</div>
-                    ${canDelete() ? `<button onclick="showDeleteModal(${idx}, ${month})" style="color:#e74c3c; background:none; border:none; cursor:pointer; margin-top:10px;">
-                        <i class="fas fa-trash"></i> Удалить
-                    </button>` : ''}
-                </div>
-                `;
-            });
-        }
-        html += `</div>`;
-
-        document.getElementById('mainTable').innerHTML = html;
-    }
-
     function renderAttendanceTimeline(data, month) {
         const selectedDate = document.getElementById('dateSelect')?.value || '';
         const selectedStudent = document.getElementById('studentSelect')?.value || '';
@@ -372,6 +318,7 @@
 
         fillDateSelect(data, month);
 
+        // ВЫЗЫВАЕМ ТОЛЬКО timeline!
         renderAttendanceTimeline(data, month);
 
         monthSelect.onchange = () => {
