@@ -307,9 +307,13 @@
                 html += `<div class="month-section">
                     <div class="month-title">${m}.${y}</div>
                     <div class="card-list">`;
-                grouped[month].forEach(row => {
+                grouped[month].forEach((row, idx) => {
                     const statusClass = row.status ? 'status-' + row.status.toLowerCase() : '';
                     const missedHours = getMissedHours(row.status);
+                    // Найти глобальный индекс записи для удаления
+                    const globalIndex = allAbsences.findIndex(
+                        r => r.date === row.date && r.student === row.student && r.subject === row.subject && r.status === row.status && r.comment === row.comment
+                    );
                     html += `
                     <div class="attendance-card ${statusClass}">
                         <div><strong>Дата:</strong> ${row.date || ''}</div>
@@ -321,6 +325,9 @@
                         </div>
                         <div><strong>Комментарий:</strong> <span class="comment">${row.comment || ''}</span></div>
                         <div><strong>Пропущено часов:</strong> ${missedHours}</div>
+                        <button onclick="showDeleteModal(${globalIndex}, '${month}')" style="margin-top:10px; background:#e74c3c; color:#fff; border:none; border-radius:6px; padding:6px 18px; cursor:pointer;">
+                            <i class="fas fa-trash"></i> Удалить
+                        </button>
                     </div>
                     `;
                 });
