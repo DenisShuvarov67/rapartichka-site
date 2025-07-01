@@ -111,7 +111,6 @@
             font-style: italic;
         }
     </style>
-    
 </head>
 <body>
 <nav class="topbar" id="topbar">
@@ -148,16 +147,6 @@
 </nav>
 <div class="container">
     <h2>Все посещения</h2>
-    <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px;">
-        <label for="monthSelect"><b>Месяц:</b></label>
-        <select id="monthSelect"></select>
-        <label for="studentSelect"><b>Студент:</b></label>
-        <select id="studentSelect"></select>
-        <label for="dateSelect"><b>Дата:</b></label>
-        <select id="dateSelect">
-            <option value="">Все</option>
-        </select>
-    </div>
     <div id="mainTable"></div>
 </div>
 <!-- Модальное окно подтверждения -->
@@ -179,92 +168,7 @@
         return 0;
     }
 
-    // Исправленный массив месяцев
-    const monthNames = [
-        'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
-        'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
-    ];
-
-    function getMonthFromDate(dateStr) {
-        const [year, month, day] = dateStr.split('-').map(Number);
-        if (!year || !month || !day) return null;
-        return month - 1; // 0-11
-    }
-
-    function fillMonthSelect(data) {
-        const select = document.getElementById('monthSelect');
-        select.innerHTML = '';
-        const monthsSet = new Set();
-        data.forEach(row => {
-            if (row.date) {
-                const m = getMonthFromDate(row.date);
-                if (m !== null) monthsSet.add(m);
-            }
-        });
-        const months = Array.from(monthsSet).sort((a, b) => a - b);
-        months.forEach(m => {
-            const option = document.createElement('option');
-            option.value = m;
-            option.textContent = monthNames[m];
-            select.appendChild(option);
-        });
-    }
-
-    function fillStudentSelect(data) {
-        const select = document.getElementById('studentSelect');
-        select.innerHTML = '';
-        const studentsSet = new Set();
-        data.forEach(row => {
-            if (row.student) studentsSet.add(row.student);
-        });
-        const students = Array.from(studentsSet).sort();
-        // Добавим вариант "Все"
-        const allOption = document.createElement('option');
-        allOption.value = '';
-        allOption.textContent = 'Все';
-        select.appendChild(allOption);
-
-        students.forEach(s => {
-            const option = document.createElement('option');
-            option.value = s;
-            option.textContent = s;
-            select.appendChild(option);
-        });
-    }
-
-    function fillDateSelect(data, month) {
-        const select = document.getElementById('dateSelect');
-        select.innerHTML = '<option value="">Все</option>';
-        const datesSet = new Set();
-        data.forEach(row => {
-            if (row.date) {
-                const m = getMonthFromDate(row.date);
-                if (m === Number(month)) {
-                    datesSet.add(row.date);
-                }
-            }
-        });
-        const dates = Array.from(datesSet).sort();
-        dates.forEach(date => {
-            const option = document.createElement('option');
-            option.value = date;
-            option.textContent = date;
-            select.appendChild(option);
-        });
-    }
-
-    function renderAttendanceTimeline(data, month) {
-        const selectedDate = document.getElementById('dateSelect')?.value || '';
-        const selectedStudent = document.getElementById('studentSelect')?.value || '';
-        const filtered = data.filter(row => {
-            if (!row.date) return false;
-            const m = getMonthFromDate(row.date);
-            if (m !== Number(month)) return false;
-            if (selectedDate && row.date !== selectedDate) return false;
-            if (selectedStudent && row.student && row.student.toLowerCase() !== selectedStudent.toLowerCase()) return false;
-            return true;
-        });
-
+    function renderAttendanceTimeline(data) {
         function getStatusIcon(status) {
             if (status === 'Присутствовал') return 'fa-check-circle';
             if (status === 'Отсутствовал') return 'fa-times-circle';
@@ -275,10 +179,10 @@
         }
 
         let html = `<div class="attendance-timeline">`;
-        if (!filtered.length) {
+        if (!data.length) {
             html += `<div style="text-align:center;">Нет данных</div>`;
         } else {
-            filtered.forEach(row => {
+            data.forEach(row => {
                 const statusClass = row.status ? 'status-' + row.status.toLowerCase() : '';
                 const missedHours = getMissedHours(row.status);
                 html += `
@@ -305,32 +209,7 @@
     async function loadAbsences() {
         const res = await fetch('https://rapartichka-site.onrender.com/absences');
         const data = await res.json();
-
-        fillMonthSelect(data);
-        fillStudentSelect(data);
-
-        const monthSelect = document.getElementById('monthSelect');
-        let month = monthSelect.value;
-        if (!month && monthSelect.options.length > 0) {
-            month = monthSelect.options[0].value;
-            monthSelect.value = month;
-        }
-
-        fillDateSelect(data, month);
-
-        // ВЫЗЫВАЕМ ТОЛЬКО timeline!
-        renderAttendanceTimeline(data, month);
-
-        monthSelect.onchange = () => {
-            fillDateSelect(data, monthSelect.value);
-            renderAttendanceTimeline(data, monthSelect.value);
-        };
-        document.getElementById('studentSelect').onchange = () => {
-            renderAttendanceTimeline(data, monthSelect.value);
-        };
-        document.getElementById('dateSelect').onchange = () => {
-            renderAttendanceTimeline(data, monthSelect.value);
-        };
+        renderAttendanceTimeline(data);
     }
     document.addEventListener('DOMContentLoaded', loadAbsences);
 
@@ -379,12 +258,8 @@
             const res = await fetch('https://rapartichka-site.onrender.com/absences');
             if (!res.ok) throw new Error('Ошибка загрузки данных');
             let data = await res.json();
-            const filtered = data.filter(row => {
-                if (!row.date) return false;
-                const m = getMonthFromDate(row.date);
-                return m === Number(month);
-            });
-            const toDelete = filtered[index];
+            // Без фильтрации по месяцу, ищем по индексу в общем списке
+            const toDelete = data[index];
             if (!toDelete) return;
             const delRes = await fetch('https://rapartichka-site.onrender.com/absences', {
                 method: 'DELETE',
@@ -425,8 +300,6 @@
     }
     setInterval(checkKicked, 5000);
     checkKicked();
-
-    // ...остальной ваш код...
 </script>
 </body>
 </html>
