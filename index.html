@@ -314,7 +314,10 @@ async function renderAttendanceCalendar(user, year, month) {
     attendanceData.forEach(row => {
         const date = new Date(row.date);
         if (
-            (row.student === user.username || row.student === user.fullName) &&
+            row.student && (
+                row.student.toLowerCase() === (user.fullName || '').toLowerCase() ||
+                row.student.toLowerCase() === (user.username || '').toLowerCase()
+            ) &&
             date.getMonth() === month &&
             date.getFullYear() === year
         ) {
@@ -452,7 +455,10 @@ const res = await fetch('https://rapartichka-site.onrender.com/users', {
                     attendanceData.forEach(row => {
                         const date = new Date(row.date);
                         if (
-                            (row.student === user.username || row.student === user.fullName) &&
+                            row.student && (
+                                row.student.toLowerCase() === (user.fullName || '').toLowerCase() ||
+                                row.student.toLowerCase() === (user.username || '').toLowerCase()
+                            ) &&
                             date.getMonth() === currentMonth &&
                             date.getFullYear() === currentYear
                         ) {
@@ -791,7 +797,10 @@ async function renderAttendanceCalendar(user, year, month) {
     attendanceData.forEach(row => {
         const date = new Date(row.date);
         if (
-            (row.student === user.username || row.student === user.fullName) &&
+            row.student && (
+                row.student.toLowerCase() === (user.fullName || '').toLowerCase() ||
+                row.student.toLowerCase() === (user.username || '').toLowerCase()
+            ) &&
             date.getMonth() === month &&
             date.getFullYear() === year
         ) {
