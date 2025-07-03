@@ -175,7 +175,8 @@ document.getElementById('loginForm').onsubmit = async function(e) {
             body: JSON.stringify({
                 username,
                 password,
-                role: selectedRole // значение из выпадающего списка ролей
+                role: selectedRole,
+                force: forceFlag // <-- обязательно!
             })
         });
         const data = await res.json();
