@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Панель куратора</title>
+    <link rel="stylesheet" href="main.css">
+</head>
+<body>
+    <h2>Панель куратора</h2>
+    <div id="curatorContent">Здесь будет информация для куратора.</div>
+    <script>
+    // Проверка роли
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    if (!user || (user.role !== 'curator' && user.roleName?.toLowerCase() !== 'куратор')) {
+        window.location.href = 'login.html';
+    }
+    </script>
+</body>
+</html>

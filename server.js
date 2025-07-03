@@ -47,15 +47,21 @@ function saveLoginAttempt(username, ip) {
 
 // Вход пользователя
 app.post('/login', (req, res) => {
-    const { password, force } = req.body;
+    const { password, force, role } = req.body;
     const username = (req.body.username || '').trim();
     if (!fs.existsSync(USERS_FILE)) {
         return res.status(401).json({ error: 'Нет пользователей' });
     }
     const users = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
-    const user = users.find(u => u.username === username && u.password === password);
+    // Проверяем не только логин и пароль, но и роль
+    const user = users.find(u =>
+        u.username === username &&
+        u.password === password &&
+        ((role && u.role && u.role.toLowerCase() === role.toLowerCase()) ||
+         (role && u.roleName && u.roleName.toLowerCase() === role.toLowerCase()))
+    );
     if (!user) {
-        return res.status(401).json({ error: 'Неверный логин или пароль' });
+        return res.status(401).json({ error: 'Неверный логин, пароль или роль' });
     }
 
     // Получаем IP
