@@ -130,6 +130,16 @@
                         <button id="importExcelBtn">Импортировать</button>
                         <div id="excelImportMsg"></div>
                     </div>
+                    <div class="admin-section" style="margin-bottom:32px;">
+                        <h3>Зарегистрировать родителя</h3>
+                        <input type="text" id="parentFullName" placeholder="ФИО родителя"><br>
+                        <input type="text" id="parentLogin" placeholder="Логин для входа"><br>
+                        <input type="password" id="parentPassword" placeholder="Пароль"><br>
+                        <input type="email" id="parentEmail" placeholder="Email"><br>
+                        <input type="text" id="childFullName" placeholder="ФИО ребёнка"><br>
+                        <button onclick="registerParent()">Зарегистрировать родителя</button>
+                        <div id="parentRegMsg"></div>
+                    </div>
                 </div>
             </div>
         </div>

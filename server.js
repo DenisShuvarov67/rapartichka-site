@@ -223,6 +223,23 @@ app.post('/register', (req, res) => {
     if (!newUser.username || !newUser.password) {
         return res.status(400).json({ error: 'Не указаны имя пользователя или пароль' });
     }
+
+    // Если роль родитель — сохраняем в parents.json
+    if (newUser.role === 'parent') {
+        const PARENTS_FILE = path.join(__dirname, 'parents.json');
+        let parents = [];
+        if (fs.existsSync(PARENTS_FILE)) {
+            parents = JSON.parse(fs.readFileSync(PARENTS_FILE, 'utf8'));
+        }
+        if (parents.some(p => p.username === newUser.username)) {
+            return res.status(409).json({ error: 'Родитель с таким логином уже существует' });
+        }
+        parents.push(newUser);
+        fs.writeFileSync(PARENTS_FILE, JSON.stringify(parents, null, 2), 'utf8');
+        return res.json({ success: true });
+    }
+
+    // Обычные пользователи — сохраняем в users.json
     let users = [];
     if (fs.existsSync(USERS_FILE)) {
         users = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
