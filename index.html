@@ -268,10 +268,18 @@
     <!-- Скрипты (оставьте ваши, как есть) -->
     <script>
     const userStr = localStorage.getItem('currentUser');
-    if (!userStr) {
-        window.location.href = 'login.html';
-    } else {
+    if (userStr) {
+        const user = JSON.parse(userStr);
+        const role = (user.roleName || user.role || '').toLowerCase();
+        if (role === 'куратор' || role === 'curator') {
+            window.location.href = 'curator.html';
+        }
+        if (role === 'родитель' || role === 'parent') {
+            window.location.href = 'parent.html';
+        }
         document.body.style.display = '';
+    } else {
+        window.location.href = 'login.html';
     }
     </script>
     <script>
