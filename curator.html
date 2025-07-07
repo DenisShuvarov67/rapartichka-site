@@ -89,17 +89,16 @@
                     <h3>Список группы и обязанности</h3>
                     <button id="addMemberBtn" style="margin-bottom:12px;padding:8px 18px;font-size:15px;">Добавить участника</button>
                     <table border="1" cellpadding="6" style="width:100%;border-collapse:collapse;">
-                        <thead>
-                            <tr>
-                                <th>ФИО</th>
-                                <th>Группа</th>
-                                <th>Обязанность</th>
-                            </tr>
-                        </thead>
-                        <tbody id="groupListTable">
-                            <!-- Данные будут добавлены скриптом -->
-                        </tbody>
-                    </table>
+    <thead>
+        <tr>
+            <th>ФИО</th>
+            <th>Обязанность</th>
+        </tr>
+    </thead>
+    <tbody id="groupListTable">
+        <!-- Данные будут добавлены скриптом -->
+    </tbody>
+</table>
                 </div>
                 <!-- Правая колонка: задачи -->
                 <div style="flex:1;">
@@ -113,7 +112,6 @@
                 <div style="background:#fff; padding:24px; border-radius:8px; min-width:300px;">
                     <h3>Добавить участника</h3>
                     <input id="memberFullName" type="text" placeholder="ФИО" style="width:100%;padding:8px;margin-bottom:8px;">
-                    <input id="memberGroup" type="text" placeholder="Группа" style="width:100%;padding:8px;margin-bottom:8px;">
                     <input id="memberDuty" type="text" placeholder="Обязанность" style="width:100%;padding:8px;margin-bottom:8px;">
                     <div style="margin-top:12px; text-align:right;">
                         <button id="saveMemberBtn" style="padding:6px 16px;">Сохранить</button>
@@ -479,7 +477,7 @@
             tbody.innerHTML = '';
             groupMembers.forEach(member => {
                 const tr = document.createElement('tr');
-                tr.innerHTML = `<td>${member.fullName}</td><td>${member.group}</td><td>${member.duty}</td>`;
+                tr.innerHTML = `<td>${member.fullName}</td><td>${member.duty}</td>`;
                 tbody.appendChild(tr);
             });
         }
@@ -489,7 +487,6 @@
         document.getElementById('addMemberBtn').onclick = function() {
             document.getElementById('addMemberModal').style.display = 'flex';
             document.getElementById('memberFullName').value = '';
-            document.getElementById('memberGroup').value = '';
             document.getElementById('memberDuty').value = '';
             document.getElementById('memberFullName').focus();
         };
@@ -500,10 +497,9 @@
         // Сохранение нового участника
         document.getElementById('saveMemberBtn').onclick = async function() {
             const fullName = document.getElementById('memberFullName').value.trim();
-            const group = document.getElementById('memberGroup').value.trim();
             const duty = document.getElementById('memberDuty').value.trim();
-            if (!fullName || !group || !duty) return;
-            await addGroupMember({ fullName, group, duty });
+            if (!fullName || !duty) return;
+            await addGroupMember({ fullName, duty });
             document.getElementById('addMemberModal').style.display = 'none';
         };
     });
@@ -551,7 +547,7 @@ function renderGroupList() {
     tbody.innerHTML = '';
     groupMembers.forEach(member => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${member.fullName}</td><td>${member.group}</td><td>${member.duty}</td>`;
+        tr.innerHTML = `<td>${member.fullName}</td><td>${member.duty}</td>`;
         tbody.appendChild(tr);
     });
 }
@@ -561,7 +557,6 @@ document.addEventListener('DOMContentLoaded', fetchGroupMembers);
 document.getElementById('addMemberBtn').onclick = function() {
     document.getElementById('addMemberModal').style.display = 'flex';
     document.getElementById('memberFullName').value = '';
-    document.getElementById('memberGroup').value = '';
     document.getElementById('memberDuty').value = '';
     document.getElementById('memberFullName').focus();
 };
@@ -570,10 +565,9 @@ document.getElementById('cancelMemberBtn').onclick = function() {
 };
 document.getElementById('saveMemberBtn').onclick = async function() {
     const fullName = document.getElementById('memberFullName').value.trim();
-    const group = document.getElementById('memberGroup').value.trim();
     const duty = document.getElementById('memberDuty').value.trim();
-    if (!fullName || !group || !duty) return;
-    await addGroupMember({ fullName, group, duty });
+    if (!fullName || !duty) return;
+    await addGroupMember({ fullName, duty });
     document.getElementById('addMemberModal').style.display = 'none';
 };
 </script>
