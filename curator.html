@@ -6,13 +6,56 @@
     <link rel="stylesheet" href="main.css">
 </head>
 <body>
+    <!-- Кнопка-бургер (видна только на мобильных) -->
+    <button class="sidebar-toggle" id="sidebarToggleBtn" aria-label="Открыть меню">
+        <span>&#9776;</span>
+    </button>
+
+    <!-- Сайдбар -->
+    <nav id="sidebar" class="sidebar" style="display:none;">
+        <ul>
+            <li><a href="index.html">Главная</a></li>
+            <li><a href="curator.html">Панель куратора</a></li>
+        </ul>
+    </nav>
+
+    <!-- Блок приветствия и информации о пользователе -->
+    <div class="welcome-block" style="margin-top: 20px;">
+        <h2>Добро пожаловать, <span id="userName">Пользователь</span>!</h2>
+        <h3>Ваша информация</h3>
+        <p>Имя пользователя: <span id="userNameInfo">-</span></p>
+        <p>ФИО Куратора: <span id="userFullNameInfo">-</span></p>
+        <p>Роль: <span id="userRole">Не определена</span></p>
+        <div id="userInfo"></div>
+    </div>
+    <div class="quick-actions-block" style="margin-top: 20px;">
+        <h3>Быстрое действие</h3>
+        <button id="addTaskBtn" style="padding: 8px 18px; font-size: 15px; display:none;">Добавить задачу</button>
+    </div>
+    <div id="tasksBlock" style="margin-top: 30px; display:none;">
+        <h3>Список задач</h3>
+        <ul id="tasksList"></ul>
+        <button id="addTaskBtn2" style="padding: 8px 18px; font-size: 15px; display:none; margin-top: 16px;">Добавить задачу</button>
+    </div>
+
     <h2>Панель куратора</h2>
     <div id="curatorContent">
         <h3>Явка студентов</h3>
+        <label for="groupSelect">Группа:</label>
+        <select id="groupSelect">
+            <option value="all">Все группы</option>
+            <!-- Группы будут добавлены скриптом -->
+        </select>
+        <label for="studentSelect">Студент:</label>
+        <select id="studentSelect">
+            <option value="all">Все студенты</option>
+            <!-- Студенты будут добавлены скриптом -->
+        </select>
         <table id="attendanceTable" border="1">
             <thead>
                 <tr>
                     <th>ФИО</th>
+                    <th>Группа</th>
                     <th>Явка</th>
                 </tr>
             </thead>
@@ -28,21 +71,68 @@
         window.location.href = 'login.html';
     }
 
-    // Пример: загрузка студентов из users.json (имитация)
-    // В реальном проекте используйте fetch или серверный API
+    // Пример данных (замените на загрузку из absences.html/absences.json)
     const students = [
-        { fullName: "Большаков КириллВячеславович", attendance: "80%" },
-        { fullName: "Буравцев  Андрей Алексеевич", attendance: "90%" },
-        { fullName: "Буруля Светлана Николаевна", attendance: "100%" },
+        { fullName: "Большаков Кирилл Вячеславович", group: "ПИ-21", attendance: "80%" },
+        { fullName: "Буравцев Андрей Алексеевич", group: "ПИ-21", attendance: "90%" },
+        { fullName: "Буруля Светлана Николаевна", group: "ПИ-22", attendance: "100%" },
         // ... остальные студенты ...
     ];
 
-    const tbody = document.querySelector('#attendanceTable tbody');
-    students.forEach(stud => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${stud.fullName}</td><td>${stud.attendance}</td>`;
-        tbody.appendChild(tr);
+    // Получение уникальных групп
+    const groups = [...new Set(students.map(s => s.group))];
+
+    // Заполнение выпадающего списка групп
+    const groupSelect = document.getElementById('groupSelect');
+    groups.forEach(g => {
+        const opt = document.createElement('option');
+        opt.value = g;
+        opt.textContent = g;
+        groupSelect.appendChild(opt);
     });
+
+    // Заполнение выпадающего списка студентов
+    const studentSelect = document.getElementById('studentSelect');
+    function fillStudentSelect(group) {
+        studentSelect.innerHTML = '<option value="all">Все студенты</option>';
+        let filtered = group === 'all' ? students : students.filter(s => s.group === group);
+        filtered.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.fullName;
+            opt.textContent = s.fullName;
+            studentSelect.appendChild(opt);
+        });
+    }
+    fillStudentSelect('all');
+
+    // Фильтрация и отображение таблицы
+    function renderTable(group = 'all', student = 'all') {
+        const tbody = document.querySelector('#attendanceTable tbody');
+        tbody.innerHTML = '';
+        let filtered = students;
+        if (group !== 'all') filtered = filtered.filter(s => s.group === group);
+        if (student !== 'all') filtered = filtered.filter(s => s.fullName === student);
+        filtered.forEach(stud => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${stud.fullName}</td><td>${stud.group}</td><td>${stud.attendance}</td>`;
+            tbody.appendChild(tr);
+        });
+    }
+    renderTable();
+
+    groupSelect.addEventListener('change', function() {
+        fillStudentSelect(this.value);
+        renderTable(this.value, 'all');
+    });
+
+    studentSelect.addEventListener('change', function() {
+        renderTable(groupSelect.value, this.value);
+    });
+
+    document.getElementById('sidebarToggleBtn').onclick = function() {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.style.display = sidebar.style.display === 'block' ? 'none' : 'block';
+    };
     </script>
 </body>
 </html>
