@@ -83,6 +83,44 @@
                 <p id="attendanceSummaryText">Загрузка...</p>
                 <button id="showAttendanceStatsBtn" style="padding:8px 18px; font-size:15px;">Подробнее о процентах посещаемости</button>
             </div>
+            <div class="info-flex-block" style="display:flex; gap:32px; align-items:flex-start; margin-top:30px;">
+                <!-- Левая колонка: группа -->
+                <div style="flex:1;">
+                    <h3>Список группы и обязанности</h3>
+                    <button id="addMemberBtn" style="margin-bottom:12px;padding:8px 18px;font-size:15px;">Добавить участника</button>
+                    <table border="1" cellpadding="6" style="width:100%;border-collapse:collapse;">
+                        <thead>
+                            <tr>
+                                <th>ФИО</th>
+                                <th>Группа</th>
+                                <th>Обязанность</th>
+                            </tr>
+                        </thead>
+                        <tbody id="groupListTable">
+                            <!-- Данные будут добавлены скриптом -->
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Правая колонка: задачи -->
+                <div style="flex:1;">
+                    <h3>Список задач</h3>
+                    <button id="addTaskBtn" style="margin-bottom:12px;padding:8px 18px;font-size:15px;">Добавить задачу</button>
+                    <ul id="tasksList"></ul>
+                </div>
+            </div>
+            <!-- Модальное окно для добавления участника -->
+            <div id="addMemberModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:1000; align-items:center; justify-content:center;">
+                <div style="background:#fff; padding:24px; border-radius:8px; min-width:300px;">
+                    <h3>Добавить участника</h3>
+                    <input id="memberFullName" type="text" placeholder="ФИО" style="width:100%;padding:8px;margin-bottom:8px;">
+                    <input id="memberGroup" type="text" placeholder="Группа" style="width:100%;padding:8px;margin-bottom:8px;">
+                    <input id="memberDuty" type="text" placeholder="Обязанность" style="width:100%;padding:8px;margin-bottom:8px;">
+                    <div style="margin-top:12px; text-align:right;">
+                        <button id="saveMemberBtn" style="padding:6px 16px;">Сохранить</button>
+                        <button id="cancelMemberBtn" style="padding:6px 16px;">Отмена</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     <!-- Модальное окно для задач -->
@@ -429,6 +467,47 @@
                 if (window.innerWidth > 900) mainWrapper.style.marginLeft = '0';
             }
         });
+
+        // Пример данных группы (можно хранить в localStorage)
+        let groupMembers = JSON.parse(localStorage.getItem('groupMembers')) || [
+            { fullName: "Большаков Кирилл Вячеславович", group: "ПИ-21", duty: "Староста" },
+            { fullName: "Буравцев Андрей Алексеевич", group: "ПИ-21", duty: "Зам. старосты" }
+        ];
+
+        function renderGroupList() {
+            const tbody = document.getElementById('groupListTable');
+            tbody.innerHTML = '';
+            groupMembers.forEach(member => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${member.fullName}</td><td>${member.group}</td><td>${member.duty}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+        document.addEventListener('DOMContentLoaded', renderGroupList);
+
+        // Открытие модального окна
+        document.getElementById('addMemberBtn').onclick = function() {
+            document.getElementById('addMemberModal').style.display = 'flex';
+            document.getElementById('memberFullName').value = '';
+            document.getElementById('memberGroup').value = '';
+            document.getElementById('memberDuty').value = '';
+            document.getElementById('memberFullName').focus();
+        };
+        // Закрытие модального окна
+        document.getElementById('cancelMemberBtn').onclick = function() {
+            document.getElementById('addMemberModal').style.display = 'none';
+        };
+        // Сохранение нового участника
+        document.getElementById('saveMemberBtn').onclick = function() {
+            const fullName = document.getElementById('memberFullName').value.trim();
+            const group = document.getElementById('memberGroup').value.trim();
+            const duty = document.getElementById('memberDuty').value.trim();
+            if (!fullName || !group || !duty) return;
+            groupMembers.push({ fullName, group, duty });
+            localStorage.setItem('groupMembers', JSON.stringify(groupMembers));
+            renderGroupList();
+            document.getElementById('addMemberModal').style.display = 'none';
+        };
     });
     </script>
 </body>
