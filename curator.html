@@ -4,135 +4,432 @@
     <meta charset="UTF-8">
     <title>Панель куратора</title>
     <link rel="stylesheet" href="main.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
-<body>
+<body style="display:none;">
     <!-- Кнопка-бургер (видна только на мобильных) -->
     <button class="sidebar-toggle" id="sidebarToggleBtn" aria-label="Открыть меню">
         <span>&#9776;</span>
     </button>
 
     <!-- Сайдбар -->
-    <nav id="sidebar" class="sidebar" style="display:none;">
-        <ul>
-            <li><a href="index.html">Главная</a></li>
-            <li><a href="curator.html">Панель куратора</a></li>
-        </ul>
+    <nav class="sidebar" id="sidebar">
+        <a href="curator.html" class="sidebar-link active" title="Панель куратора">
+            <span class="sidebar-icon"><i class="fas fa-user-tie"></i></span>
+            <span class="sidebar-label">Панель куратора</span>
+        </a>
+        <a href="absences.html" class="sidebar-link" title="Явка студентов">
+            <span class="sidebar-icon"><i class="fas fa-users"></i></span>
+            <span class="sidebar-label">Явка студентов</span>
+        </a>
+        <a href="settings.html" class="sidebar-link" title="Настройки">
+            <span class="sidebar-icon"><i class="fas fa-cog"></i></span>
+            <span class="sidebar-label settings-label">Настройки</span>
+        </a>
+        <button class="logout-btn" id="logoutBtn">
+            <span class="sidebar-icon"><i class="fas fa-sign-out-alt"></i></span>
+            <span class="logout-label">Выйти</span>
+        </button>
     </nav>
 
-    <!-- Блок приветствия и информации о пользователе -->
-    <div class="welcome-block" style="margin-top: 20px;">
-        <h2>Добро пожаловать, <span id="userName">Пользователь</span>!</h2>
-        <h3>Ваша информация</h3>
-        <p>Имя пользователя: <span id="userNameInfo">-</span></p>
-        <p>ФИО Куратора: <span id="userFullNameInfo">-</span></p>
-        <p>Роль: <span id="userRole">Не определена</span></p>
-        <div id="userInfo"></div>
+    <div class="main-wrapper" id="mainWrapper">
+        <div class="container">
+            <div class="clock-box">
+                <div>
+                    <div id="date"></div>
+                    <div id="time"></div>
+                </div>
+            </div>
+            <h2>
+                <img id="mainUserAvatar" src="img/default-avatar.png" alt="Аватар" style="width:64px;height:78px;border-radius:50%;vertical-align:middle;margin-right:10px;object-fit:cover;">
+                Добро пожаловать, <span id="userName">Пользователь</span>!
+            </h2>
+            <div class="user-info">
+                <h3>Ваша информация</h3>
+                <p>Имя пользователя: <span id="userNameInfo">-</span></p>
+                <p>ФИО Куратора: <span id="userFullNameInfo">-</span></p>
+                <p>Роль: <span id="userRole">Не определена</span></p>
+                <div id="userInfo"></div>
+            </div>
+            <div class="quick-actions-block" style="margin-top: 20px;">
+                <h3>Быстрое действие</h3>
+                <button id="addTaskBtn" style="padding: 8px 18px; font-size: 15px; display:none;">Добавить задачу</button>
+            </div>
+            <div id="tasksBlock" style="margin-top: 30px; display:none;">
+                <h3>Список задач</h3>
+                <ul id="tasksList"></ul>
+                <button id="addTaskBtn2" style="padding: 8px 18px; font-size: 15px; display:none; margin-top: 16px;">Добавить задачу</button>
+            </div>
+            <!-- Календарь посещаемости -->
+            <div id="attendanceCalendarBlock" style="margin-top:30px;">
+                <h3>Календарь посещаемости</h3>
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+                    <button id="prevMonthBtn" style="font-size:18px;padding:2px 10px;">&#8592;</button>
+                    <span id="calendarMonthLabel" style="font-weight:600;"></span>
+                    <button id="nextMonthBtn" style="font-size:18px;padding:2px 10px;">&#8594;</button>
+                </div>
+                <div id="attendanceCalendar"></div>
+                <div style="margin-top:8px;font-size:13px;">
+                    <span style="display:inline-block;width:16px;height:16px;background:#36d46c;border-radius:3px;margin-right:4px;vertical-align:middle;"></span> Присутствовал
+                    <span style="display:inline-block;width:16px;height:16px;background:#e74c3c;border-radius:3px;margin:0 8px 0 16px;vertical-align:middle;"></span> Прогул
+                    <span style="display:inline-block;width:16px;height:16px;background:#f1c40f;border-radius:3px;margin:0 8px 0 0;vertical-align:middle;"></span> Болел
+                    <span style="display:inline-block;width:16px;height:16px;background:#3498db;border-radius:3px;margin:0 8px 0 0;vertical-align:middle;"></span> Опоздал
+                </div>
+            </div>
+            <!-- Сводка по посещаемости -->
+            <div id="attendanceSummaryBlock" style="margin-top:30px; display:none;">
+                <h3>Сводка по посещаемости</h3>
+                <p id="attendanceSummaryText">Загрузка...</p>
+                <button id="showAttendanceStatsBtn" style="padding:8px 18px; font-size:15px;">Подробнее о процентах посещаемости</button>
+            </div>
+        </div>
     </div>
-    <div class="quick-actions-block" style="margin-top: 20px;">
-        <h3>Быстрое действие</h3>
-        <button id="addTaskBtn" style="padding: 8px 18px; font-size: 15px; display:none;">Добавить задачу</button>
-    </div>
-    <div id="tasksBlock" style="margin-top: 30px; display:none;">
-        <h3>Список задач</h3>
-        <ul id="tasksList"></ul>
-        <button id="addTaskBtn2" style="padding: 8px 18px; font-size: 15px; display:none; margin-top: 16px;">Добавить задачу</button>
-    </div>
-
-    <h2>Панель куратора</h2>
-    <div id="curatorContent">
-        <h3>Явка студентов</h3>
-        <label for="groupSelect">Группа:</label>
-        <select id="groupSelect">
-            <option value="all">Все группы</option>
-            <!-- Группы будут добавлены скриптом -->
-        </select>
-        <label for="studentSelect">Студент:</label>
-        <select id="studentSelect">
-            <option value="all">Все студенты</option>
-            <!-- Студенты будут добавлены скриптом -->
-        </select>
-        <table id="attendanceTable" border="1">
-            <thead>
-                <tr>
-                    <th>ФИО</th>
-                    <th>Группа</th>
-                    <th>Явка</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Студенты будут добавлены скриптом -->
-            </tbody>
-        </table>
+    <!-- Модальное окно для задач -->
+    <div id="taskModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:1000; align-items:center; justify-content:center;">
+        <div style="background:#fff; padding:24px; border-radius:8px; min-width:300px;">
+            <h3>Добавить задачу</h3>
+            <input id="taskInput" type="text" placeholder="Введите задачу" style="width:100%;padding:8px;">
+            <div style="margin-top:12px; text-align:right;">
+                <button id="saveTaskBtn" style="padding:6px 16px;">Сохранить</button>
+                <button id="cancelTaskBtn" style="padding:6px 16px;">Отмена</button>
+            </div>
+        </div>
     </div>
     <script>
-    // Проверка роли
-    const user = JSON.parse(localStorage.getItem('currentUser'));
-    if (!user || (user.role !== 'curator' && user.roleName?.toLowerCase() !== 'куратор')) {
+    // --- Защита: только для куратора ---
+    const userStr = localStorage.getItem('currentUser');
+    if (!userStr) {
         window.location.href = 'login.html';
+    } else {
+        const user = JSON.parse(userStr);
+        if (
+            !user ||
+            !(
+                (user.role && user.role.toLowerCase() === 'curator') ||
+                (user.roleName && user.roleName.toLowerCase() === 'куратор')
+            )
+        ) {
+            window.location.href = 'index.html';
+        } else {
+            document.body.style.display = '';
+        }
+    }
+    </script>
+    <script>
+    // --- Копия логики с главной страницы, адаптированная для куратора ---
+    function getDisplayRole(user) {
+        if (user.roleName && user.roleName.trim() !== '') return user.roleName;
+        switch ((user.role || '').toLowerCase()) {
+            case 'student': return 'Студент';
+            case 'headman': return 'Староста';
+            case 'deputy_headman': return 'Зам старосты';
+            case 'curator': return 'Куратор';
+            case 'admin':
+            case 'администратор': return 'Администратор';
+            default: return user.role || '-';
+        }
     }
 
-    // Пример данных (замените на загрузку из absences.html/absences.json)
-    const students = [
-        { fullName: "Большаков Кирилл Вячеславович", group: "ПИ-21", attendance: "80%" },
-        { fullName: "Буравцев Андрей Алексеевич", group: "ПИ-21", attendance: "90%" },
-        { fullName: "Буруля Светлана Николаевна", group: "ПИ-22", attendance: "100%" },
-        // ... остальные студенты ...
-    ];
+    document.addEventListener('DOMContentLoaded', async function() {
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        let user = currentUser;
+        try {
+            const token = localStorage.getItem('authToken');
+            const res = await fetch('https://rapartichka-site.onrender.com/users', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const users = await res.json();
+                const found = users.find(u => u.username === currentUser.username);
+                if (found) {
+                    if ((!found.avatar || found.avatar === '') && currentUser.avatar) {
+                        found.avatar = currentUser.avatar;
+                    }
+                    user = found;
+                    localStorage.setItem('currentUser', JSON.stringify(user));
+                }
+            }
+        } catch (e) {}
 
-    // Получение уникальных групп
-    const groups = [...new Set(students.map(s => s.group))];
+        // Аватар
+        const avatar = document.getElementById('mainUserAvatar');
+        if (user && user.avatar && avatar) {
+            avatar.src = user.avatar;
+        } else if (avatar) {
+            avatar.src = 'img/default-avatar.png';
+        }
 
-    // Заполнение выпадающего списка групп
-    const groupSelect = document.getElementById('groupSelect');
-    groups.forEach(g => {
-        const opt = document.createElement('option');
-        opt.value = g;
-        opt.textContent = g;
-        groupSelect.appendChild(opt);
-    });
+        // Информация о пользователе
+        document.getElementById('userName').textContent = user.fullName || user.username;
+        document.getElementById('userNameInfo').textContent = user.username;
+        document.getElementById('userFullNameInfo').textContent = user.fullName || '-';
+        document.getElementById('userRole').textContent = getDisplayRole(user);
 
-    // Заполнение выпадающего списка студентов
-    const studentSelect = document.getElementById('studentSelect');
-    function fillStudentSelect(group) {
-        studentSelect.innerHTML = '<option value="all">Все студенты</option>';
-        let filtered = group === 'all' ? students : students.filter(s => s.group === group);
-        filtered.forEach(s => {
-            const opt = document.createElement('option');
-            opt.value = s.fullName;
-            opt.textContent = s.fullName;
-            studentSelect.appendChild(opt);
-        });
-    }
-    fillStudentSelect('all');
+        let additionalRoles = '-';
+        if (user.additionalRoles && Array.isArray(user.additionalRoles) && user.additionalRoles.length > 0) {
+            additionalRoles = user.additionalRoles.filter(r => r && r.trim() !== '').join(', ');
+        }
+        document.getElementById('userInfo').innerHTML = `<b>Дополнительные роли:</b> ${additionalRoles}`;
 
-    // Фильтрация и отображение таблицы
-    function renderTable(group = 'all', student = 'all') {
-        const tbody = document.querySelector('#attendanceTable tbody');
-        tbody.innerHTML = '';
-        let filtered = students;
-        if (group !== 'all') filtered = filtered.filter(s => s.group === group);
-        if (student !== 'all') filtered = filtered.filter(s => s.fullName === student);
-        filtered.forEach(stud => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${stud.fullName}</td><td>${stud.group}</td><td>${stud.attendance}</td>`;
-            tbody.appendChild(tr);
-        });
-    }
-    renderTable();
+        // --- Календарь посещаемости ---
+        let calendarYear = (new Date()).getFullYear();
+        let calendarMonth = (new Date()).getMonth();
 
-    groupSelect.addEventListener('change', function() {
-        fillStudentSelect(this.value);
-        renderTable(this.value, 'all');
-    });
+        async function renderAttendanceCalendar(user, year, month) {
+            const calendarDiv = document.getElementById('attendanceCalendar');
+            const monthLabel = document.getElementById('calendarMonthLabel');
+            if (!calendarDiv || !monthLabel) return;
 
-    studentSelect.addEventListener('change', function() {
-        renderTable(groupSelect.value, this.value);
-    });
+            let attendanceData = [];
+            try {
+                const res = await fetch('https://rapartichka-site.onrender.com/absences');
+                if (res.ok) {
+                    attendanceData = await res.json();
+                }
+            } catch (e) {
+                attendanceData = [];
+            }
 
-    document.getElementById('sidebarToggleBtn').onclick = function() {
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const dayStatus = {};
+            attendanceData.forEach(row => {
+                const date = new Date(row.date);
+                if (
+                    row.student && (
+                        row.student.toLowerCase() === (user.fullName || '').toLowerCase() ||
+                        row.student.toLowerCase() === (user.username || '').toLowerCase()
+                    ) &&
+                    date.getMonth() === month &&
+                    date.getFullYear() === year
+                ) {
+                    const d = date.getDate();
+                    if (row.status === 'Отсутствовал') dayStatus[d] = 'absent';
+                    else if (row.status === 'Уважительная причина') dayStatus[d] = 'excused';
+                    else if (row.status === 'Больничный') dayStatus[d] = 'sick';
+                    else if (row.status === 'Опоздал') dayStatus[d] = 'late';
+                    else if (row.status === 'Присутствовал') dayStatus[d] = 'present';
+                }
+            });
+
+            const monthNames = [
+                'Январь','Февраль','Март','Апрель','Май','Июнь',
+                'Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'
+            ];
+            monthLabel.textContent = `${monthNames[month]} ${year}`;
+
+            let html = '<table class="attendance-calendar-table"><tr>';
+            const weekDays = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+            weekDays.forEach(d => html += `<th>${d}</th>`);
+            html += '</tr><tr>';
+
+            let firstDay = new Date(year, month, 1).getDay();
+            if (firstDay === 0) firstDay = 7;
+            for (let i = 1; i < firstDay; i++) html += '<td class="empty"></td>';
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const status = dayStatus[day] || '';
+                html += `<td class="${status}">${day}</td>`;
+                if ((firstDay + day - 1) % 7 === 0 && day !== daysInMonth) html += '</tr><tr>';
+            }
+            let lastCell = (firstDay + daysInMonth - 1) % 7;
+            if (lastCell !== 0) {
+                for (let i = lastCell + 1; i <= 7; i++) html += '<td class="empty"></td>';
+            }
+            html += '</tr></table>';
+
+            calendarDiv.innerHTML = html;
+        }
+
+        async function updateCalendar() {
+            await renderAttendanceCalendar(user, calendarYear, calendarMonth);
+        }
+
+        await updateCalendar();
+
+        document.getElementById('prevMonthBtn').onclick = async function() {
+            calendarMonth--;
+            if (calendarMonth < 0) {
+                calendarMonth = 11;
+                calendarYear--;
+            }
+            await updateCalendar();
+        };
+        document.getElementById('nextMonthBtn').onclick = async function() {
+            calendarMonth++;
+            if (calendarMonth > 11) {
+                calendarMonth = 0;
+                calendarYear++;
+            }
+            await updateCalendar();
+        };
+
+        setInterval(async () => {
+            await updateCalendar();
+        }, 1 * 60 * 1000);
+
+        // --- To-Do задачи ---
+        function hasTaskAccess(user) {
+            if (!user) return false;
+            const allowedRoles = ['headman', 'deputy_headman', 'curator', 'admin', 'администратор', 'Староста', 'Зам старосты', 'Куратор', 'Администратор'];
+            return allowedRoles.includes((user.roleName || '').toLowerCase()) ||
+                allowedRoles.includes((user.role || '').toLowerCase());
+        }
+
+        function renderTasks(tasks, user) {
+            const tasksList = document.getElementById('tasksList');
+            tasksList.innerHTML = '';
+            const isAdmin = (user.roleName && user.roleName.toLowerCase().includes('админ')) ||
+                (user.role && user.role.toLowerCase().includes('админ'));
+            tasks
+                .filter(t => isAdmin || t.author === user.username)
+                .forEach((task, idx) => {
+                    const li = document.createElement('li');
+                    li.textContent = `${task.text} (${task.authorDisplay || task.author})`;
+                    if (isAdmin || task.author === user.username) {
+                        const delBtn = document.createElement('button');
+                        delBtn.textContent = 'Удалить';
+                        delBtn.style.marginLeft = '12px';
+                        delBtn.style.padding = '2px 10px';
+                        delBtn.style.fontSize = '12px';
+                        delBtn.onclick = function() {
+                            const tasks = getTasks();
+                            const delIdx = tasks.findIndex(t => t.created === task.created && t.author === task.author);
+                            if (delIdx !== -1) {
+                                tasks.splice(delIdx, 1);
+                                saveTasks(tasks);
+                                renderTasks(tasks, user);
+                            }
+                        };
+                        li.appendChild(delBtn);
+                    }
+                    tasksList.appendChild(li);
+                });
+        }
+
+        function getTasks() {
+            return JSON.parse(localStorage.getItem('tasksList')) || [];
+        }
+
+        function saveTasks(tasks) {
+            localStorage.setItem('tasksList', JSON.stringify(tasks));
+        }
+
+        if (hasTaskAccess(user)) {
+            document.getElementById('tasksBlock').style.display = '';
+            renderTasks(getTasks(), user);
+            document.getElementById('addTaskBtn').style.display = '';
+        }
+
+        document.getElementById('addTaskBtn').onclick = function() {
+            document.getElementById('taskModal').style.display = 'flex';
+            document.getElementById('taskInput').value = '';
+            document.getElementById('taskInput').focus();
+        };
+        document.getElementById('cancelTaskBtn').onclick = function() {
+            document.getElementById('taskModal').style.display = 'none';
+        };
+        document.getElementById('saveTaskBtn').onclick = function() {
+            const text = document.getElementById('taskInput').value.trim();
+            if (!text) return;
+            const tasks = getTasks();
+            tasks.push({
+                text,
+                author: user.username,
+                authorDisplay: user.fullName || user.username,
+                created: Date.now()
+            });
+            saveTasks(tasks);
+            renderTasks(tasks, user);
+            document.getElementById('taskModal').style.display = 'none';
+        };
+
+        // --- Сводка по посещаемости ---
+        const allowedSummaryRoles = [
+            'куратор', 'администратор', 'зам старосты', 'староста',
+            'curator', 'admin', 'deputy_headman', 'headman'
+        ];
+
+        async function updateAttendanceSummary() {
+            const role = (user.roleName || user.role || '').toLowerCase();
+            if (!allowedSummaryRoles.includes(role)) return;
+            document.getElementById('attendanceSummaryBlock').style.display = '';
+            let attendanceData = [];
+            try {
+                const res = await fetch('https://rapartichka-site.onrender.com/absences');
+                if (res.ok) {
+                    attendanceData = await res.json();
+                }
+            } catch (e) {
+                attendanceData = [];
+            }
+            const total = attendanceData.length;
+            const present = attendanceData.filter(a => a.status === 'Присутствовал').length;
+            const percent = total > 0 ? Math.round((present / total) * 100) : 0;
+            document.getElementById('attendanceSummaryText').textContent =
+                `Общий процент посещаемости: ${percent}% (${present} из ${total})`;
+        }
+
+        document.getElementById('showAttendanceStatsBtn').onclick = function() {
+            window.location.href = 'attendance-stats.html';
+        };
+
+        await updateAttendanceSummary();
+
+        // Часы
+        function updateClock() {
+            const now = new Date();
+            const date = now.toLocaleDateString('ru-RU');
+            const time = now.toLocaleTimeString('ru-RU', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('date').textContent = date;
+            document.getElementById('time').textContent = time;
+        }
+        updateClock();
+        setInterval(updateClock, 1000);
+
+        // Логаут
+        document.getElementById('logoutBtn').onclick = function(e) {
+            e.preventDefault();
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('authToken');
+            window.location.href = 'login.html';
+        };
+
+        // Сайдбар бургер
         const sidebar = document.getElementById('sidebar');
-        sidebar.style.display = sidebar.style.display === 'block' ? 'none' : 'block';
-    };
+        const toggleBtn = document.getElementById('sidebarToggleBtn');
+        const mainWrapper = document.getElementById('mainWrapper');
+        function toggleSidebar() {
+            sidebar.classList.toggle('open');
+            if (window.innerWidth > 900) {
+                if (sidebar.classList.contains('open')) {
+                    mainWrapper.style.marginLeft = '220px';
+                } else {
+                    mainWrapper.style.marginLeft = '0';
+                }
+            }
+        }
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleSidebar();
+            });
+        }
+        document.addEventListener('click', function(e) {
+            if (
+                sidebar.classList.contains('open') &&
+                !sidebar.contains(e.target) &&
+                e.target !== toggleBtn
+            ) {
+                sidebar.classList.remove('open');
+                if (window.innerWidth > 900) mainWrapper.style.marginLeft = '0';
+            }
+        });
+    });
     </script>
 </body>
 </html>
