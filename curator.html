@@ -498,17 +498,84 @@
             document.getElementById('addMemberModal').style.display = 'none';
         };
         // Сохранение нового участника
-        document.getElementById('saveMemberBtn').onclick = function() {
+        document.getElementById('saveMemberBtn').onclick = async function() {
             const fullName = document.getElementById('memberFullName').value.trim();
             const group = document.getElementById('memberGroup').value.trim();
             const duty = document.getElementById('memberDuty').value.trim();
             if (!fullName || !group || !duty) return;
-            groupMembers.push({ fullName, group, duty });
-            localStorage.setItem('groupMembers', JSON.stringify(groupMembers));
-            renderGroupList();
+            await addGroupMember({ fullName, group, duty });
             document.getElementById('addMemberModal').style.display = 'none';
         };
     });
     </script>
+    <script>
+// Загрузка списка группы с сервера
+async function fetchGroupMembers() {
+    try {
+        const res = await fetch('https://rapartichka-site.onrender.com/group-members');
+        if (res.ok) {
+            groupMembers = await res.json();
+            renderGroupList();
+        } else {
+            groupMembers = [];
+            renderGroupList();
+        }
+    } catch (e) {
+        groupMembers = [];
+        renderGroupList();
+    }
+}
+
+// Сохранение нового участника на сервер
+async function addGroupMember(member) {
+    try {
+        const res = await fetch('https://rapartichka-site.onrender.com/group-members', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(member)
+        });
+        if (res.ok) {
+            await fetchGroupMembers(); // обновить список после добавления
+        } else {
+            alert('Ошибка при добавлении участника');
+        }
+    } catch (e) {
+        alert('Ошибка соединения с сервером');
+    }
+}
+
+let groupMembers = [];
+
+function renderGroupList() {
+    const tbody = document.getElementById('groupListTable');
+    tbody.innerHTML = '';
+    groupMembers.forEach(member => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${member.fullName}</td><td>${member.group}</td><td>${member.duty}</td>`;
+        tbody.appendChild(tr);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', fetchGroupMembers);
+
+document.getElementById('addMemberBtn').onclick = function() {
+    document.getElementById('addMemberModal').style.display = 'flex';
+    document.getElementById('memberFullName').value = '';
+    document.getElementById('memberGroup').value = '';
+    document.getElementById('memberDuty').value = '';
+    document.getElementById('memberFullName').focus();
+};
+document.getElementById('cancelMemberBtn').onclick = function() {
+    document.getElementById('addMemberModal').style.display = 'none';
+};
+document.getElementById('saveMemberBtn').onclick = async function() {
+    const fullName = document.getElementById('memberFullName').value.trim();
+    const group = document.getElementById('memberGroup').value.trim();
+    const duty = document.getElementById('memberDuty').value.trim();
+    if (!fullName || !group || !duty) return;
+    await addGroupMember({ fullName, group, duty });
+    document.getElementById('addMemberModal').style.display = 'none';
+};
+</script>
 </body>
 </html>
