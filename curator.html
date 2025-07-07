@@ -7,13 +7,42 @@
 </head>
 <body>
     <h2>Панель куратора</h2>
-    <div id="curatorContent">Здесь будет информация для куратора.</div>
+    <div id="curatorContent">
+        <h3>Явка студентов</h3>
+        <table id="attendanceTable" border="1">
+            <thead>
+                <tr>
+                    <th>ФИО</th>
+                    <th>Явка</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Студенты будут добавлены скриптом -->
+            </tbody>
+        </table>
+    </div>
     <script>
     // Проверка роли
     const user = JSON.parse(localStorage.getItem('currentUser'));
     if (!user || (user.role !== 'curator' && user.roleName?.toLowerCase() !== 'куратор')) {
         window.location.href = 'login.html';
     }
+
+    // Пример: загрузка студентов из users.json (имитация)
+    // В реальном проекте используйте fetch или серверный API
+    const students = [
+        { fullName: "Большаков КириллВячеславович", attendance: "80%" },
+        { fullName: "Буравцев  Андрей Алексеевич", attendance: "90%" },
+        { fullName: "Буруля Светлана Николаевна", attendance: "100%" },
+        // ... остальные студенты ...
+    ];
+
+    const tbody = document.querySelector('#attendanceTable tbody');
+    students.forEach(stud => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${stud.fullName}</td><td>${stud.attendance}</td>`;
+        tbody.appendChild(tr);
+    });
     </script>
 </body>
 </html>
