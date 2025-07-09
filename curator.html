@@ -522,7 +522,7 @@
             document.getElementById('memberFullName').value = '';
             document.getElementById('memberDuty').value = '';
             document.getElementById('memberFullName').focus();
-            renderMembersListInModal();
+            renderMembersListInModal(); // добавьте этот вызов
         };
         // Закрытие модального окна
         document.getElementById('cancelMemberBtn').onclick = function() {
@@ -532,8 +532,16 @@
         document.getElementById('saveMemberBtn').onclick = async function() {
             const fullName = document.getElementById('memberFullName').value.trim();
             const duty = document.getElementById('memberDuty').value.trim();
+            const editIdx = this.dataset.editIdx;
             if (!fullName || !duty) return;
-            await addGroupMember({ fullName, duty });
+            if (editIdx !== undefined) {
+                // Редактирование существующего участника
+                await updateGroupMember(editIdx, { fullName, duty });
+                delete this.dataset.editIdx;
+            } else {
+                // Добавление нового участника
+                await addGroupMember({ fullName, duty });
+            }
             document.getElementById('addMemberModal').style.display = 'none';
         };
 
@@ -545,19 +553,23 @@
                 return;
             }
             container.innerHTML = groupMembers.map((m, idx) => `
-                <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;">
-                    <span>${m.fullName} <span style="color:#aaa;font-size:13px;">(${m.duty})</span></span>
-                    <span>
-                        <button class="edit-member-btn" data-idx="${idx}" title="Изменить" style="font-size:13px;padding:2px 6px;">✏️</button>
-                        <button class="delete-member-btn" data-idx="${idx}" title="Удалить" style="font-size:13px;padding:2px 6px;color:#e74c3c;">🗑️</button>
-                    </span>
-                </div>
-            `).join('');
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;">
+            <span>${m.fullName} <span style="color:#aaa;font-size:13px;">(${m.duty})</span></span>
+            <span>
+                <button class="edit-member-btn" data-idx="${idx}" title="Изменить" style="font-size:13px;padding:2px 6px;">✏️</button>
+                <button class="delete-member-btn" data-idx="${idx}" title="Удалить" style="font-size:13px;padding:2px 6px;color:#e74c3c;">🗑️</button>
+            </span>
+        </div>
+    `).join('');
             // Навешиваем обработчики
             container.querySelectorAll('.edit-member-btn').forEach(btn => {
                 btn.onclick = function() {
                     const idx = +btn.dataset.idx;
-                    openEditDutyModal(idx);
+                    // Подставляем данные в поля для редактирования
+                    document.getElementById('memberFullName').value = groupMembers[idx].fullName;
+                    document.getElementById('memberDuty').value = groupMembers[idx].duty;
+                    // Сохраняем индекс редактируемого пользователя
+                    document.getElementById('saveMemberBtn').dataset.editIdx = idx;
                 };
             });
             container.querySelectorAll('.delete-member-btn').forEach(btn => {
@@ -712,8 +724,16 @@ document.getElementById('cancelMemberBtn').onclick = function() {
 document.getElementById('saveMemberBtn').onclick = async function() {
     const fullName = document.getElementById('memberFullName').value.trim();
     const duty = document.getElementById('memberDuty').value.trim();
+    const editIdx = this.dataset.editIdx;
     if (!fullName || !duty) return;
-    await addGroupMember({ fullName, duty });
+    if (editIdx !== undefined) {
+        // Редактирование существующего участника
+        await updateGroupMember(editIdx, { fullName, duty });
+        delete this.dataset.editIdx;
+    } else {
+        // Добавление нового участника
+        await addGroupMember({ fullName, duty });
+    }
     document.getElementById('addMemberModal').style.display = 'none';
 };
 </script>

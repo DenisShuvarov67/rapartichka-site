@@ -823,13 +823,6 @@ a, a:visited, a:hover, a:active {
     background: #23262C;
 }
 
-#groupListTable tr:hover td {
-    background: #2fa85a;
-    color: #fff;
-    transition: background 0.2s;
-}
-
-
 .edit-duty-btn,
 .delete-member-btn,
 .edit-member-btn {
