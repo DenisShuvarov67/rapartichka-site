@@ -142,613 +142,29 @@
         </div>
     </div>
     <script>
-    // --- Защита: только для куратора ---
-    const userStr = localStorage.getItem('currentUser');
-    if (!userStr) {
-        window.location.href = 'login.html';
+let groupMembers = [];
+let editMemberIdx = null;
+
+// --- Защита: только для куратора ---
+const userStr = localStorage.getItem('currentUser');
+if (!userStr) {
+    window.location.href = 'login.html';
+} else {
+    const user = JSON.parse(userStr);
+    if (
+        !user ||
+        !(
+            (user.role && user.role.toLowerCase() === 'curator') ||
+            (user.roleName && user.roleName.toLowerCase() === 'куратор')
+        )
+    ) {
+        window.location.href = 'index.html';
     } else {
-        const user = JSON.parse(userStr);
-        if (
-            !user ||
-            !(
-                (user.role && user.role.toLowerCase() === 'curator') ||
-                (user.roleName && user.roleName.toLowerCase() === 'куратор')
-            )
-        ) {
-            window.location.href = 'index.html';
-        } else {
-            document.body.style.display = '';
-        }
+        document.body.style.display = '';
     }
+}
 
-    // --- Работа с участниками группы ---
-    /* groupMembers is already declared in the main script, do not redeclare here */
-    let editMemberIdx = null;
-
-    // Загрузка списка группы с сервера
-    async function fetchGroupMembers() {
-        try {
-            const res = await fetch('https://rapartichka-site.onrender.com/group-members');
-            if (res.ok) {
-                groupMembers = await res.json();
-                renderGroupList();
-            } else {
-                groupMembers = [];
-                renderGroupList();
-            }
-        } catch (e) {
-            groupMembers = [];
-            renderGroupList();
-        }
-    }
-
-    // Сохранение нового участника на сервер
-    async function addGroupMember(member) {
-        try {
-            const res = await fetch('https://rapartichka-site.onrender.com/group-members', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(member)
-            });
-            if (res.ok) {
-                await fetchGroupMembers();
-            } else {
-                alert('Ошибка при добавлении участника');
-            }
-        } catch (e) {
-            alert('Ошибка соединения с сервером');
-        }
-    }
-
-    // Удаление участника
-    async function deleteGroupMember(idx) {
-        const member = groupMembers[idx];
-        try {
-            const res = await fetch('https://rapartichka-site.onrender.com/group-members', {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: member.id })
-            });
-            if (res.ok) {
-                await fetchGroupMembers();
-            } else {
-                alert('Ошибка при удалении');
-            }
-        } catch (e) {
-            alert('Ошибка соединения с сервером');
-        }
-    }
-
-    // Обновление участника
-    async function updateGroupMember(idx, member) {
-        const old = groupMembers[idx];
-        try {
-            const res = await fetch('https://rapartichka-site.onrender.com/group-members', {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: old.id, fullName: member.fullName, duty: member.duty })
-            });
-            if (res.ok) {
-                await fetchGroupMembers();
-            } else {
-                alert('Ошибка при обновлении');
-            }
-        } catch (e) {
-            alert('Ошибка соединения с сервером');
-        }
-    }
-
-    // Рендер списка группы
-    function renderGroupList() {
-        const tbody = document.getElementById('groupListTable');
-        tbody.innerHTML = '';
-        groupMembers.forEach((member, idx) => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${member.fullName}</td>
-                <td>
-                    ${member.duty}
-                    <button class="edit-duty-btn" data-idx="${idx}" style="margin-left:8px;font-size:13px;">✏️</button>
-                    <button class="delete-member-btn" data-idx="${idx}" style="margin-left:4px;font-size:13px;color:#e74c3c;">🗑️</button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-
-        // Навешиваем обработчики на кнопки
-        tbody.querySelectorAll('.edit-duty-btn').forEach(btn => {
-            btn.onclick = function() {
-                const idx = +btn.dataset.idx;
-                openEditDutyModal(idx);
-            };
-        });
-        tbody.querySelectorAll('.delete-member-btn').forEach(btn => {
-            btn.onclick = async function() {
-                const idx = +btn.dataset.idx;
-                if (confirm('Удалить участника?')) {
-                    await deleteGroupMember(idx);
-                }
-            };
-        });
-    }
-
-    // Открытие модального окна для добавления участника
-    document.getElementById('addMemberBtn').onclick = function() {
-        document.getElementById('addMemberModal').style.display = 'flex';
-        document.getElementById('memberFullName').value = '';
-        document.getElementById('memberDuty').value = '';
-        document.getElementById('memberFullName').focus();
-        editMemberIdx = null;
-    };
-
-    // Закрытие модального окна
-    document.getElementById('cancelMemberBtn').onclick = function() {
-        document.getElementById('addMemberModal').style.display = 'none';
-        editMemberIdx = null;
-    };
-
-    // Сохранение нового участника или редактирование
-    document.getElementById('saveMemberBtn').onclick = async function() {
-        const fullName = document.getElementById('memberFullName').value.trim();
-        const duty = document.getElementById('memberDuty').value.trim();
-        if (!fullName || !duty) return;
-        if (editMemberIdx !== null) {
-            // Редактирование существующего участника
-            await updateGroupMember(editMemberIdx, { fullName, duty });
-            editMemberIdx = null;
-        } else {
-            // Добавление нового участника
-            await addGroupMember({ fullName, duty });
-        }
-        document.getElementById('addMemberModal').style.display = 'none';
-    };
-
-    // Открытие модального окна для редактирования обязанности
-    function openEditDutyModal(idx) {
-        editMemberIdx = idx;
-        document.getElementById('editDutyInput').value = groupMembers[idx].duty;
-        document.getElementById('editDutyModal').style.display = 'flex';
-    }
-
-    // Сохранение изменения обязанности
-    document.getElementById('saveEditDutyBtn').onclick = async function() {
-        if (editMemberIdx === null) return;
-        const newDuty = document.getElementById('editDutyInput').value.trim();
-        if (!newDuty) return;
-        await updateGroupMember(editMemberIdx, {
-            fullName: groupMembers[editMemberIdx].fullName,
-            duty: newDuty
-        });
-        document.getElementById('editDutyModal').style.display = 'none';
-        editMemberIdx = null;
-    };
-
-    // Закрытие модального окна редактирования обязанности
-    document.getElementById('cancelEditDutyBtn').onclick = function() {
-        document.getElementById('editDutyModal').style.display = 'none';
-        editMemberIdx = null;
-    };
-
-    document.addEventListener('DOMContentLoaded', fetchGroupMembers);
-    </script>
-    <script>
-    // --- Копия логики с главной страницы, адаптированная для куратора ---
-    function getDisplayRole(user) {
-        if (user.roleName && user.roleName.trim() !== '') return user.roleName;
-        switch ((user.role || '').toLowerCase()) {
-            case 'student': return 'Студент';
-            case 'headman': return 'Староста';
-            case 'deputy_headman': return 'Зам старосты';
-            case 'curator': return 'Куратор';
-            case 'admin':
-            case 'администратор': return 'Администратор';
-            default: return user.role || '-';
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', async function() {
-        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-        let user = currentUser;
-        try {
-            const token = localStorage.getItem('authToken');
-            const res = await fetch('https://rapartichka-site.onrender.com/users', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (res.ok) {
-                const users = await res.json();
-                const found = users.find(u => u.username === currentUser.username);
-                if (found) {
-                    if ((!found.avatar || found.avatar === '') && currentUser.avatar) {
-                        found.avatar = currentUser.avatar;
-                    }
-                    user = found;
-                    localStorage.setItem('currentUser', JSON.stringify(user));
-                }
-            }
-        } catch (e) {}
-
-        // Аватар
-        const avatar = document.getElementById('mainUserAvatar');
-        if (user && user.avatar && avatar) {
-            avatar.src = user.avatar;
-        } else if (avatar) {
-            avatar.src = 'img/default-avatar.png';
-        }
-
-        // Информация о пользователе
-        document.getElementById('userName').textContent = user.fullName || user.username;
-        document.getElementById('userNameInfo').textContent = user.username;
-        document.getElementById('userFullNameInfo').textContent = user.fullName || '-';
-        document.getElementById('userRole').textContent = getDisplayRole(user);
-
-        let additionalRoles = '-';
-        if (user.additionalRoles && Array.isArray(user.additionalRoles) && user.additionalRoles.length > 0) {
-            additionalRoles = user.additionalRoles.filter(r => r && r.trim() !== '').join(', ');
-        }
-        document.getElementById('userInfo').innerHTML = `<b>Дополнительные роли:</b> ${additionalRoles}`;
-
-        // --- Календарь посещаемости ---
-        let calendarYear = (new Date()).getFullYear();
-        let calendarMonth = (new Date()).getMonth();
-
-        async function renderAttendanceCalendar(user, year, month) {
-            const calendarDiv = document.getElementById('attendanceCalendar');
-            const monthLabel = document.getElementById('calendarMonthLabel');
-            if (!calendarDiv || !monthLabel) return;
-
-            let attendanceData = [];
-            try {
-                const res = await fetch('https://rapartichka-site.onrender.com/absences');
-                if (res.ok) {
-                    attendanceData = await res.json();
-                }
-            } catch (e) {
-                attendanceData = [];
-            }
-
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const dayStatus = {};
-            attendanceData.forEach(row => {
-                const date = new Date(row.date);
-                if (
-                    row.student && (
-                        row.student.toLowerCase() === (user.fullName || '').toLowerCase() ||
-                        row.student.toLowerCase() === (user.username || '').toLowerCase()
-                    ) &&
-                    date.getMonth() === month &&
-                    date.getFullYear() === year
-                ) {
-                    const d = date.getDate();
-                    if (row.status === 'Отсутствовал') dayStatus[d] = 'absent';
-                    else if (row.status === 'Уважительная причина') dayStatus[d] = 'excused';
-                    else if (row.status === 'Больничный') dayStatus[d] = 'sick';
-                    else if (row.status === 'Опоздал') dayStatus[d] = 'late';
-                    else if (row.status === 'Присутствовал') dayStatus[d] = 'present';
-                }
-            });
-
-            const monthNames = [
-                'Январь','Февраль','Март','Апрель','Май','Июнь',
-                'Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'
-            ];
-            monthLabel.textContent = `${monthNames[month]} ${year}`;
-
-            let html = '<table class="attendance-calendar-table"><tr>';
-            const weekDays = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
-            weekDays.forEach(d => html += `<th>${d}</th>`);
-            html += '</tr><tr>';
-
-            let firstDay = new Date(year, month, 1).getDay();
-            if (firstDay === 0) firstDay = 7;
-            for (let i = 1; i < firstDay; i++) html += '<td class="empty"></td>';
-
-            for (let day = 1; day <= daysInMonth; day++) {
-                const status = dayStatus[day] || '';
-                html += `<td class="${status}">${day}</td>`;
-                if ((firstDay + day - 1) % 7 === 0 && day !== daysInMonth) html += '</tr><tr>';
-            }
-            let lastCell = (firstDay + daysInMonth - 1) % 7;
-            if (lastCell !== 0) {
-                for (let i = lastCell + 1; i <= 7; i++) html += '<td class="empty"></td>';
-            }
-            html += '</tr></table>';
-
-            calendarDiv.innerHTML = html;
-        }
-
-        async function updateCalendar() {
-            await renderAttendanceCalendar(user, calendarYear, calendarMonth);
-        }
-
-        await updateCalendar();
-
-        document.getElementById('prevMonthBtn').onclick = async function() {
-            calendarMonth--;
-            if (calendarMonth < 0) {
-                calendarMonth = 11;
-                calendarYear--;
-            }
-            await updateCalendar();
-        document.getElementById('nextMonthBtn').onclick = async function() {
-            calendarMonth++;
-            if (calendarMonth > 11) {
-                calendarMonth = 0;
-                calendarYear++;
-            }
-            await updateCalendar();
-        };
-
-        setInterval(async () => {
-            await updateCalendar();
-        }, 1 * 60 * 1000);
-
-        // --- To-Do задачи ---
-        function hasTaskAccess(user) {
-            if (!user) return false;
-            const allowedRoles = ['headman', 'deputy_headman', 'curator', 'admin', 'администратор', 'Староста', 'Зам старосты', 'Куратор', 'Администратор'];
-            return allowedRoles.includes((user.roleName || '').toLowerCase()) ||
-                allowedRoles.includes((user.role || '').toLowerCase());
-        }
-
-        function renderTasks(tasks, user) {
-            const tasksList = document.getElementById('tasksList');
-            tasksList.innerHTML = '';
-            const isAdmin = (user.roleName && user.roleName.toLowerCase().includes('админ')) ||
-                (user.role && user.role.toLowerCase().includes('админ'));
-            tasks
-                .filter(t => isAdmin || t.author === user.username)
-                .forEach((task, idx) => {
-                    const li = document.createElement('li');
-                    li.textContent = `${task.text} (${task.authorDisplay || task.author})`;
-                    if (isAdmin || task.author === user.username) {
-                        const delBtn = document.createElement('button');
-                        delBtn.textContent = 'Удалить';
-                        delBtn.style.marginLeft = '12px';
-                        delBtn.style.padding = '2px 10px';
-                        delBtn.style.fontSize = '12px';
-                        delBtn.onclick = function() {
-                            const tasks = getTasks();
-                            const delIdx = tasks.findIndex(t => t.created === task.created && t.author === task.author);
-                            if (delIdx !== -1) {
-                                tasks.splice(delIdx, 1);
-                                saveTasks(tasks);
-                                renderTasks(tasks, user);
-                            }
-                        };
-                        li.appendChild(delBtn);
-                    }
-                    tasksList.appendChild(li);
-                });
-        }
-
-        function getTasks() {
-            return JSON.parse(localStorage.getItem('tasksList')) || [];
-        }
-
-        function saveTasks(tasks) {
-            localStorage.setItem('tasksList', JSON.stringify(tasks));
-        }
-
-        if (hasTaskAccess(user)) {
-            document.getElementById('tasksBlock').style.display = '';
-            renderTasks(getTasks(), user);
-            document.getElementById('addTaskBtn').style.display = '';
-        }
-
-        document.getElementById('addTaskBtn').onclick = function() {
-            document.getElementById('taskModal').style.display = 'flex';
-            document.getElementById('taskInput').value = '';
-            document.getElementById('taskInput').focus();
-        };
-        document.getElementById('cancelTaskBtn').onclick = function() {
-            document.getElementById('taskModal').style.display = 'none';
-        };
-        document.getElementById('saveTaskBtn').onclick = function() {
-            const text = document.getElementById('taskInput').value.trim();
-            if (!text) return;
-            const tasks = getTasks();
-            tasks.push({
-                text,
-                author: user.username,
-                authorDisplay: user.fullName || user.username,
-                created: Date.now()
-            });
-            saveTasks(tasks);
-            renderTasks(tasks, user);
-            document.getElementById('taskModal').style.display = 'none';
-        };
-
-        // --- Сводка по посещаемости ---
-        const allowedSummaryRoles = [
-            'куратор', 'администратор', 'зам старосты', 'староста',
-            'curator', 'admin', 'deputy_headman', 'headman'
-        ];
-
-        async function updateAttendanceSummary() {
-            const role = (user.roleName || user.role || '').toLowerCase();
-            if (!allowedSummaryRoles.includes(role)) return;
-            document.getElementById('attendanceSummaryBlock').style.display = '';
-            let attendanceData = [];
-            try {
-                const res = await fetch('https://rapartichka-site.onrender.com/absences');
-                if (res.ok) {
-                    attendanceData = await res.json();
-                }
-            } catch (e) {
-                attendanceData = [];
-            }
-            const total = attendanceData.length;
-            const present = attendanceData.filter(a => a.status === 'Присутствовал').length;
-            const percent = total > 0 ? Math.round((present / total) * 100) : 0;
-            document.getElementById('attendanceSummaryText').textContent =
-                `Общий процент посещаемости: ${percent}% (${present} из ${total})`;
-        }
-
-        document.getElementById('showAttendanceStatsBtn').onclick = function() {
-            window.location.href = 'attendance-stats.html';
-        };
-
-        await updateAttendanceSummary();
-
-        // Часы
-        function updateClock() {
-            const now = new Date();
-            const date = now.toLocaleDateString('ru-RU');
-            const time = now.toLocaleTimeString('ru-RU', {
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            });
-            document.getElementById('date').textContent = date;
-            document.getElementById('time').textContent = time;
-        }
-        updateClock();
-        setInterval(updateClock, 1000);
-
-        // Логаут
-        document.getElementById('logoutBtn').onclick = function(e) {
-            e.preventDefault();
-            localStorage.removeItem('currentUser');
-            localStorage.removeItem('authToken');
-            window.location.href = 'login.html';
-        };
-
-        // Сайдбар бургер
-        const sidebar = document.getElementById('sidebar');
-        const toggleBtn = document.getElementById('sidebarToggleBtn');
-        const mainWrapper = document.getElementById('mainWrapper');
-        function toggleSidebar() {
-            sidebar.classList.toggle('open');
-            if (window.innerWidth > 900) {
-                if (sidebar.classList.contains('open')) {
-                    mainWrapper.style.marginLeft = '220px';
-                } else {
-                    mainWrapper.style.marginLeft = '0';
-                }
-            }
-        }
-        if (toggleBtn) {
-            toggleBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                toggleSidebar();
-            });
-        }
-        document.addEventListener('click', function(e) {
-            if (
-                sidebar.classList.contains('open') &&
-                !sidebar.contains(e.target) &&
-                e.target !== toggleBtn
-            ) {
-                sidebar.classList.remove('open');
-                if (window.innerWidth > 900) mainWrapper.style.marginLeft = '0';
-            }
-        });
-
-            const tbody = document.getElementById('groupListTable');
-            tbody.innerHTML = '';
-            groupMembers.forEach((member, idx) => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${member.fullName}</td>
-                    <td>
-                        ${member.duty}
-                        <button class="edit-duty-btn" data-idx="${idx}" style="margin-left:8px;font-size:13px;">✏️</button>
-                        <button class="delete-member-btn" data-idx="${idx}" style="margin-left:4px;font-size:13px;color:#e74c3c;">🗑️</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-
-            // Навешиваем обработчики на кнопки
-            tbody.querySelectorAll('.edit-duty-btn').forEach(btn => {
-                btn.onclick = function() {
-                    const idx = +btn.dataset.idx;
-                    openEditDutyModal(idx);
-                };
-            });
-            tbody.querySelectorAll('.delete-member-btn').forEach(btn => {
-                btn.onclick = async function() {
-                    const idx = +btn.dataset.idx;
-                    if (confirm('Удалить участника?')) {
-                        await deleteGroupMember(idx);
-                    }
-                };
-            });
-        }
-
-        // document.addEventListener('DOMContentLoaded', renderGroupList);
-
-        // Открытие модального окна
-        document.getElementById('addMemberBtn').onclick = function() {
-            document.getElementById('addMemberModal').style.display = 'flex';
-            document.getElementById('memberFullName').value = '';
-            document.getElementById('memberDuty').value = '';
-            document.getElementById('memberFullName').focus();
-            renderMembersListInModal(); // добавьте этот вызов
-        };
-        // Закрытие модального окна
-        document.getElementById('cancelMemberBtn').onclick = function() {
-            document.getElementById('addMemberModal').style.display = 'none';
-        };
-        // Сохранение нового участника
-        document.getElementById('saveMemberBtn').onclick = async function() {
-            const fullName = document.getElementById('memberFullName').value.trim();
-            const duty = document.getElementById('memberDuty').value.trim();
-            const editIdx = this.dataset.editIdx;
-            if (!fullName || !duty) return;
-            if (editIdx !== undefined) {
-                // Редактирование существующего участника
-                await updateGroupMember(editIdx, { fullName, duty });
-                delete this.dataset.editIdx;
-            } else {
-                // Добавление нового участника
-                await addGroupMember({ fullName, duty });
-            }
-            document.getElementById('addMemberModal').style.display = 'none';
-        };
-
-        function renderMembersListInModal() {
-            const container = document.getElementById('membersListInModal');
-            if (!container) return;
-            if (!groupMembers.length) {
-                container.innerHTML = '<div style="color:#888;">Нет участников</div>';
-                return;
-            }
-            container.innerHTML = groupMembers.map((m, idx) => `
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;">
-            <span>${m.fullName} <span style="color:#aaa;font-size:13px;">(${m.duty})</span></span>
-            <span>
-                <button class="edit-member-btn" data-idx="${idx}" title="Изменить" style="font-size:13px;padding:2px 6px;">✏️</button>
-                <button class="delete-member-btn" data-idx="${idx}" title="Удалить" style="font-size:13px;padding:2px 6px;color:#e74c3c;">🗑️</button>
-            </span>
-        </div>
-    `).join('');
-            // Навешиваем обработчики
-            container.querySelectorAll('.edit-member-btn').forEach(btn => {
-                btn.onclick = function() {
-                    const idx = +btn.dataset.idx;
-                    // Подставляем данные в поля для редактирования
-                    document.getElementById('memberFullName').value = groupMembers[idx].fullName;
-                    document.getElementById('memberDuty').value = groupMembers[idx].duty;
-                    // Сохраняем индекс редактируемого пользователя
-                    document.getElementById('saveMemberBtn').dataset.editIdx = idx;
-                };
-            });
-            container.querySelectorAll('.delete-member-btn').forEach(btn => {
-                btn.onclick = async function() {
-                    const idx = +btn.dataset.idx;
-                    if (confirm('Удалить участника?')) {
-                        await deleteGroupMember(idx);
-                        renderMembersListInModal();
-                    }
-                };
-            });
-        }
-
-    });
-    </script>
-    <script>
-// Загрузка списка группы с сервера
+// --- Работа с участниками группы ---
 async function fetchGroupMembers() {
     try {
         const res = await fetch('https://rapartichka-site.onrender.com/group-members');
@@ -765,7 +181,6 @@ async function fetchGroupMembers() {
     }
 }
 
-// Сохранение нового участника на сервер
 async function addGroupMember(member) {
     try {
         const res = await fetch('https://rapartichka-site.onrender.com/group-members', {
@@ -819,8 +234,6 @@ async function updateGroupMember(idx, member) {
     }
 }
 
-let groupMembers = [];
-
 function renderGroupList() {
     const tbody = document.getElementById('groupListTable');
     tbody.innerHTML = '';
@@ -837,11 +250,10 @@ function renderGroupList() {
         tbody.appendChild(tr);
     });
 
-    // Навешиваем обработчики на кнопки
     tbody.querySelectorAll('.edit-duty-btn').forEach(btn => {
         btn.onclick = function() {
             const idx = +btn.dataset.idx;
-            // Здесь откройте модалку для редактирования и вызовите updateGroupMember
+            openEditDutyModal(idx);
         };
     });
     tbody.querySelectorAll('.delete-member-btn').forEach(btn => {
@@ -854,32 +266,138 @@ function renderGroupList() {
     });
 }
 
-document.addEventListener('DOMContentLoaded', fetchGroupMembers);
-
 document.getElementById('addMemberBtn').onclick = function() {
     document.getElementById('addMemberModal').style.display = 'flex';
     document.getElementById('memberFullName').value = '';
     document.getElementById('memberDuty').value = '';
     document.getElementById('memberFullName').focus();
+    editMemberIdx = null;
 };
+
 document.getElementById('cancelMemberBtn').onclick = function() {
     document.getElementById('addMemberModal').style.display = 'none';
+    editMemberIdx = null;
 };
+
 document.getElementById('saveMemberBtn').onclick = async function() {
     const fullName = document.getElementById('memberFullName').value.trim();
     const duty = document.getElementById('memberDuty').value.trim();
-    const editIdx = this.dataset.editIdx;
     if (!fullName || !duty) return;
-    if (editIdx !== undefined) {
-        // Редактирование существующего участника
-        await updateGroupMember(editIdx, { fullName, duty });
-        delete this.dataset.editIdx;
+    if (editMemberIdx !== null) {
+        await updateGroupMember(editMemberIdx, { fullName, duty });
+        editMemberIdx = null;
     } else {
-        // Добавление нового участника
         await addGroupMember({ fullName, duty });
     }
     document.getElementById('addMemberModal').style.display = 'none';
 };
+
+function openEditDutyModal(idx) {
+    editMemberIdx = idx;
+    document.getElementById('editDutyInput').value = groupMembers[idx].duty;
+    document.getElementById('editDutyModal').style.display = 'flex';
+}
+
+document.getElementById('saveEditDutyBtn').onclick = async function() {
+    if (editMemberIdx === null) return;
+    const newDuty = document.getElementById('editDutyInput').value.trim();
+    if (!newDuty) return;
+    await updateGroupMember(editMemberIdx, {
+        fullName: groupMembers[editMemberIdx].fullName,
+        duty: newDuty
+    });
+    document.getElementById('editDutyModal').style.display = 'none';
+    editMemberIdx = null;
+};
+
+document.getElementById('cancelEditDutyBtn').onclick = function() {
+    document.getElementById('editDutyModal').style.display = 'none';
+    editMemberIdx = null;
+};
+
+document.addEventListener('DOMContentLoaded', fetchGroupMembers);
+
+// --- To-Do задачи ---
+function hasTaskAccess(user) {
+    if (!user) return false;
+    const allowedRoles = [
+        'headman', 'deputy_headman', 'curator', 'admin', 'администратор',
+        'староста', 'зам старосты', 'куратор', 'администратор'
+    ];
+    return allowedRoles.includes((user.roleName || '').toLowerCase()) ||
+        allowedRoles.includes((user.role || '').toLowerCase());
+}
+
+function renderTasks(tasks, user) {
+    const tasksList = document.getElementById('tasksList');
+    tasksList.innerHTML = '';
+    const isAdmin = (user.roleName && user.roleName.toLowerCase().includes('админ')) ||
+        (user.role && user.role.toLowerCase().includes('админ'));
+    tasks
+        .filter(t => isAdmin || t.author === user.username)
+        .forEach((task) => {
+            const li = document.createElement('li');
+            li.textContent = `${task.text} (${task.authorDisplay || task.author})`;
+            if (isAdmin || task.author === user.username) {
+                const delBtn = document.createElement('button');
+                delBtn.textContent = 'Удалить';
+                delBtn.style.marginLeft = '12px';
+                delBtn.style.padding = '2px 10px';
+                delBtn.style.fontSize = '12px';
+                delBtn.onclick = function() {
+                    const tasks = getTasks();
+                    const delIdx = tasks.findIndex(t => t.created === task.created && t.author === task.author);
+                    if (delIdx !== -1) {
+                        tasks.splice(delIdx, 1);
+                        saveTasks(tasks);
+                        renderTasks(tasks, user);
+                    }
+                };
+                li.appendChild(delBtn);
+            }
+            tasksList.appendChild(li);
+        });
+}
+
+function getTasks() {
+    return JSON.parse(localStorage.getItem('tasksList')) || [];
+}
+
+function saveTasks(tasks) {
+    localStorage.setItem('tasksList', JSON.stringify(tasks));
+}
+
+if (hasTaskAccess(JSON.parse(userStr))) {
+    document.getElementById('tasksBlock').style.display = '';
+    renderTasks(getTasks(), JSON.parse(userStr));
+    document.getElementById('addTaskBtn').style.display = '';
+}
+
+document.getElementById('addTaskBtn').onclick = function() {
+    document.getElementById('taskModal').style.display = 'flex';
+    document.getElementById('taskInput').value = '';
+    document.getElementById('taskInput').focus();
+};
+document.getElementById('cancelTaskBtn').onclick = function() {
+    document.getElementById('taskModal').style.display = 'none';
+};
+document.getElementById('saveTaskBtn').onclick = function() {
+    const text = document.getElementById('taskInput').value.trim();
+    if (!text) return;
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    const tasks = getTasks();
+    tasks.push({
+        text,
+        author: user.username,
+        authorDisplay: user.fullName || user.username,
+        created: Date.now()
+    });
+    saveTasks(tasks);
+    renderTasks(tasks, user);
+    document.getElementById('taskModal').style.display = 'none';
+};
+
+// --- Остальной ваш код (календарь, часы, логаут и т.д.) оставьте как есть, но только в одном экземпляре ---
 </script>
 </body>
 </html>
