@@ -299,7 +299,6 @@
                 calendarYear--;
             }
             await updateCalendar();
-        };
         document.getElementById('nextMonthBtn').onclick = async function() {
             calendarMonth++;
             if (calendarMonth > 11) {
@@ -475,13 +474,6 @@
             }
         });
 
-        // Пример данных группы (можно хранить в localStorage)
-        let groupMembers = JSON.parse(localStorage.getItem('groupMembers')) || [
-            { fullName: "Большаков Кирилл Вячеславович", group: "ПИ-21", duty: "Староста" },
-            { fullName: "Буравцев Андрей Алексеевич", group: "ПИ-21", duty: "Зам. старосты" }
-        ];
-
-        function renderGroupList() {
             const tbody = document.getElementById('groupListTable');
             tbody.innerHTML = '';
             groupMembers.forEach((member, idx) => {
@@ -514,7 +506,7 @@
             });
         }
 
-        document.addEventListener('DOMContentLoaded', renderGroupList);
+        // document.addEventListener('DOMContentLoaded', renderGroupList);
 
         // Открытие модального окна
         document.getElementById('addMemberBtn').onclick = function() {
@@ -613,7 +605,6 @@ async function addGroupMember(member) {
         });
         if (res.ok) {
             await fetchGroupMembers();
-            renderMembersListInModal();
         } else {
             alert('Ошибка при добавлении участника');
         }
@@ -632,28 +623,8 @@ async function deleteGroupMember(idx) {
         });
         if (res.ok) {
             await fetchGroupMembers();
-            renderMembersListInModal();
         } else {
             alert('Ошибка при удалении');
-        }
-    } catch (e) {
-        alert('Ошибка соединения с сервером');
-    }
-}
-
-async function updateGroupMemberDuty(idx, newDuty) {
-    const member = groupMembers[idx];
-    try {
-        const res = await fetch('https://rapartichka-site.onrender.com/group-members', {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: member.id, fullName: member.fullName, duty: newDuty })
-        });
-        if (res.ok) {
-            await fetchGroupMembers();
-            renderMembersListInModal();
-        } else {
-            alert('Ошибка при обновлении');
         }
     } catch (e) {
         alert('Ошибка соединения с сервером');
@@ -670,7 +641,6 @@ async function updateGroupMember(idx, member) {
         });
         if (res.ok) {
             await fetchGroupMembers();
-            renderMembersListInModal();
         } else {
             alert('Ошибка при обновлении');
         }
@@ -701,7 +671,7 @@ function renderGroupList() {
     tbody.querySelectorAll('.edit-duty-btn').forEach(btn => {
         btn.onclick = function() {
             const idx = +btn.dataset.idx;
-            openEditDutyModal(idx);
+            // Здесь откройте модалку для редактирования и вызовите updateGroupMember
         };
     });
     tbody.querySelectorAll('.delete-member-btn').forEach(btn => {
