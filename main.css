@@ -820,17 +820,9 @@ a, a:visited, a:hover, a:active {
 }
 
 #groupListTable tr:hover {
-    background: #eaf6ff;
+    background: #f5f5f5; /* светло-серый, а не белый */
+    transition: background 0.2s;
 }
-
-/* Для мобильных устройств */
-@media (max-width: 700px) {
-    .info-flex-block {
-        flex-direction: column;
-        gap: 18px;
-    }
-    #groupListTable th, #groupListTable td {
-        font-size: 16px;
-        padding: 10px 6px;
-    }
+#groupListTable td, #groupListTable th {
+    background: #fff; /* если нужно, чтобы фон всегда был белым */
 }

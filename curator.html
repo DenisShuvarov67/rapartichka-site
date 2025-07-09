@@ -484,12 +484,36 @@
         function renderGroupList() {
             const tbody = document.getElementById('groupListTable');
             tbody.innerHTML = '';
-            groupMembers.forEach(member => {
+            groupMembers.forEach((member, idx) => {
                 const tr = document.createElement('tr');
-                tr.innerHTML = `<td>${member.fullName}</td><td>${member.duty}</td>`;
+                tr.innerHTML = `
+                    <td>${member.fullName}</td>
+                    <td>
+                        ${member.duty}
+                        <button class="edit-duty-btn" data-idx="${idx}" style="margin-left:8px;font-size:13px;">✏️</button>
+                        <button class="delete-member-btn" data-idx="${idx}" style="margin-left:4px;font-size:13px;color:#e74c3c;">🗑️</button>
+                    </td>
+                `;
                 tbody.appendChild(tr);
             });
+
+            // Навешиваем обработчики на кнопки
+            tbody.querySelectorAll('.edit-duty-btn').forEach(btn => {
+                btn.onclick = function() {
+                    const idx = +btn.dataset.idx;
+                    openEditDutyModal(idx);
+                };
+            });
+            tbody.querySelectorAll('.delete-member-btn').forEach(btn => {
+                btn.onclick = async function() {
+                    const idx = +btn.dataset.idx;
+                    if (confirm('Удалить участника?')) {
+                        await deleteGroupMember(idx);
+                    }
+                };
+            });
         }
+
         document.addEventListener('DOMContentLoaded', renderGroupList);
 
         // Открытие модального окна
@@ -549,15 +573,91 @@ async function addGroupMember(member) {
     }
 }
 
+async function deleteGroupMember(idx) {
+    const member = groupMembers[idx];
+    try {
+        // Если есть id, используйте его, иначе по ФИО
+        const res = await fetch('https://rapartichka-site.onrender.com/group-members/' + (member.id || encodeURIComponent(member.fullName)), {
+            method: 'DELETE'
+        });
+        if (res.ok) {
+            await fetchGroupMembers();
+        } else {
+            alert('Ошибка при удалении');
+        }
+    } catch (e) {
+        alert('Ошибка соединения с сервером');
+    }
+}
+
+function openEditDutyModal(idx) {
+    const member = groupMembers[idx];
+    document.getElementById('editDutyModal').style.display = 'flex';
+    document.getElementById('editDutyInput').value = member.duty;
+    document.getElementById('editDutyInput').focus();
+
+    // Сохраняем индекс для дальнейшего использования
+    document.getElementById('saveEditDutyBtn').onclick = async function() {
+        const newDuty = document.getElementById('editDutyInput').value.trim();
+        if (!newDuty) return;
+        await updateGroupMemberDuty(idx, newDuty);
+        document.getElementById('editDutyModal').style.display = 'none';
+    };
+    document.getElementById('cancelEditDutyBtn').onclick = function() {
+        document.getElementById('editDutyModal').style.display = 'none';
+    };
+}
+
+async function updateGroupMemberDuty(idx, newDuty) {
+    const member = groupMembers[idx];
+    try {
+        const res = await fetch('https://rapartichka-site.onrender.com/group-members/' + (member.id || encodeURIComponent(member.fullName)), {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ duty: newDuty })
+        });
+        if (res.ok) {
+            await fetchGroupMembers();
+        } else {
+            alert('Ошибка при обновлении');
+        }
+    } catch (e) {
+        alert('Ошибка соединения с сервером');
+    }
+}
+
 let groupMembers = [];
 
 function renderGroupList() {
     const tbody = document.getElementById('groupListTable');
     tbody.innerHTML = '';
-    groupMembers.forEach(member => {
+    groupMembers.forEach((member, idx) => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${member.fullName}</td><td>${member.duty}</td>`;
+        tr.innerHTML = `
+            <td>${member.fullName}</td>
+            <td>
+                ${member.duty}
+                <button class="edit-duty-btn" data-idx="${idx}" style="margin-left:8px;font-size:13px;">✏️</button>
+                <button class="delete-member-btn" data-idx="${idx}" style="margin-left:4px;font-size:13px;color:#e74c3c;">🗑️</button>
+            </td>
+        `;
         tbody.appendChild(tr);
+    });
+
+    // Навешиваем обработчики на кнопки
+    tbody.querySelectorAll('.edit-duty-btn').forEach(btn => {
+        btn.onclick = function() {
+            const idx = +btn.dataset.idx;
+            openEditDutyModal(idx);
+        };
+    });
+    tbody.querySelectorAll('.delete-member-btn').forEach(btn => {
+        btn.onclick = async function() {
+            const idx = +btn.dataset.idx;
+            if (confirm('Удалить участника?')) {
+                await deleteGroupMember(idx);
+            }
+        };
     });
 }
 
