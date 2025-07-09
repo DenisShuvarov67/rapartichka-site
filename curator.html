@@ -522,6 +522,7 @@
             document.getElementById('memberFullName').value = '';
             document.getElementById('memberDuty').value = '';
             document.getElementById('memberFullName').focus();
+            renderMembersListInModal();
         };
         // Закрытие модального окна
         document.getElementById('cancelMemberBtn').onclick = function() {
@@ -535,6 +536,41 @@
             await addGroupMember({ fullName, duty });
             document.getElementById('addMemberModal').style.display = 'none';
         };
+
+        function renderMembersListInModal() {
+            const container = document.getElementById('membersListInModal');
+            if (!container) return;
+            if (!groupMembers.length) {
+                container.innerHTML = '<div style="color:#888;">Нет участников</div>';
+                return;
+            }
+            container.innerHTML = groupMembers.map((m, idx) => `
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;">
+                    <span>${m.fullName} <span style="color:#aaa;font-size:13px;">(${m.duty})</span></span>
+                    <span>
+                        <button class="edit-member-btn" data-idx="${idx}" title="Изменить" style="font-size:13px;padding:2px 6px;">✏️</button>
+                        <button class="delete-member-btn" data-idx="${idx}" title="Удалить" style="font-size:13px;padding:2px 6px;color:#e74c3c;">🗑️</button>
+                    </span>
+                </div>
+            `).join('');
+            // Навешиваем обработчики
+            container.querySelectorAll('.edit-member-btn').forEach(btn => {
+                btn.onclick = function() {
+                    const idx = +btn.dataset.idx;
+                    openEditDutyModal(idx);
+                };
+            });
+            container.querySelectorAll('.delete-member-btn').forEach(btn => {
+                btn.onclick = async function() {
+                    const idx = +btn.dataset.idx;
+                    if (confirm('Удалить участника?')) {
+                        await deleteGroupMember(idx);
+                        renderMembersListInModal();
+                    }
+                };
+            });
+        }
+
     });
     </script>
     <script>
@@ -564,7 +600,8 @@ async function addGroupMember(member) {
             body: JSON.stringify(member)
         });
         if (res.ok) {
-            await fetchGroupMembers(); // обновить список после добавления
+            await fetchGroupMembers();
+            renderMembersListInModal();
         } else {
             alert('Ошибка при добавлении участника');
         }

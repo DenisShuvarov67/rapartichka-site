@@ -810,19 +810,25 @@ a, a:visited, a:hover, a:active {
 }
 
 #groupListTable th {
-    background: #f5f5f5;
-    font-weight: 700;
-    font-size: 19px;
+    background: #23262C;
+    color: var(--accent);
 }
 
-#groupListTable tr:nth-child(even) {
-    background: #fafafa;
+#groupListTable td {
+    background: #181B20;
+    color: #f5f5f5;
 }
 
-#groupListTable tr:hover {
-    background: #f5f5f5; /* светло-серый, а не белый */
+#groupListTable tr:nth-child(even) td {
+    background: #23262C;
+}
+
+#groupListTable tr:hover td {
+    background: #2fa85a;
+    color: #fff;
     transition: background 0.2s;
 }
-#groupListTable td, #groupListTable th {
+
+#groupListTable th, #groupListTable td {
     background: #fff; /* если нужно, чтобы фон всегда был белым */
 }
