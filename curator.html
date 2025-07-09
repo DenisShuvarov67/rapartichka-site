@@ -409,17 +409,17 @@ document.getElementById('saveTaskBtn').onclick = function() {
 // Кнопка-бургер для мобильного меню
 const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
 const sidebar = document.getElementById('sidebar');
-sidebarToggleBtn.onclick = function() {
-    sidebar.classList.toggle('sidebar-open');
+sidebarToggleBtn.onclick = function(e) {
+    e.stopPropagation();
+    sidebar.classList.toggle('open');
 };
-// Для закрытия по клику вне сайдбара (опционально)
 document.addEventListener('click', function(e) {
     if (
-        sidebar.classList.contains('sidebar-open') &&
+        sidebar.classList.contains('open') &&
         !sidebar.contains(e.target) &&
         e.target !== sidebarToggleBtn
     ) {
-        sidebar.classList.remove('sidebar-open');
+        sidebar.classList.remove('open');
     }
 });
 </script>
