@@ -439,6 +439,45 @@ app.delete('/absences', async (req, res) => {
     }
 });
 
+// Получить список участников группы
+app.get('/group-members', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT id, full_name AS "fullName", duty FROM group_members ORDER BY id');
+        res.json(result.rows);
+    } catch (e) {
+        res.status(500).json({ error: 'Ошибка базы данных' });
+    }
+});
+
+// Добавить участника группы
+app.post('/group-members', async (req, res) => {
+    const { fullName, duty } = req.body;
+    if (!fullName || !duty) {
+        return res.status(400).json({ error: 'Не указаны ФИО или обязанность' });
+    }
+    try {
+        await pool.query(
+            'INSERT INTO group_members(full_name, duty) VALUES($1, $2)',
+            [fullName, duty]
+        );
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: 'Ошибка базы данных' });
+    }
+});
+
+// Удалить участника группы (по id)
+app.delete('/group-members', async (req, res) => {
+    const { id } = req.body;
+    if (!id) return res.status(400).json({ error: 'Не передан id' });
+    try {
+        await pool.query('DELETE FROM group_members WHERE id = $1', [id]);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: 'Ошибка базы данных' });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Сервер запущен на https://rapartichka-site.onrender.com`);
 });
