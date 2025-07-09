@@ -160,6 +160,176 @@
             document.body.style.display = '';
         }
     }
+
+    // --- Работа с участниками группы ---
+    /* groupMembers is already declared in the main script, do not redeclare here */
+    let editMemberIdx = null;
+
+    // Загрузка списка группы с сервера
+    async function fetchGroupMembers() {
+        try {
+            const res = await fetch('https://rapartichka-site.onrender.com/group-members');
+            if (res.ok) {
+                groupMembers = await res.json();
+                renderGroupList();
+            } else {
+                groupMembers = [];
+                renderGroupList();
+            }
+        } catch (e) {
+            groupMembers = [];
+            renderGroupList();
+        }
+    }
+
+    // Сохранение нового участника на сервер
+    async function addGroupMember(member) {
+        try {
+            const res = await fetch('https://rapartichka-site.onrender.com/group-members', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(member)
+            });
+            if (res.ok) {
+                await fetchGroupMembers();
+            } else {
+                alert('Ошибка при добавлении участника');
+            }
+        } catch (e) {
+            alert('Ошибка соединения с сервером');
+        }
+    }
+
+    // Удаление участника
+    async function deleteGroupMember(idx) {
+        const member = groupMembers[idx];
+        try {
+            const res = await fetch('https://rapartichka-site.onrender.com/group-members', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: member.id })
+            });
+            if (res.ok) {
+                await fetchGroupMembers();
+            } else {
+                alert('Ошибка при удалении');
+            }
+        } catch (e) {
+            alert('Ошибка соединения с сервером');
+        }
+    }
+
+    // Обновление участника
+    async function updateGroupMember(idx, member) {
+        const old = groupMembers[idx];
+        try {
+            const res = await fetch('https://rapartichka-site.onrender.com/group-members', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: old.id, fullName: member.fullName, duty: member.duty })
+            });
+            if (res.ok) {
+                await fetchGroupMembers();
+            } else {
+                alert('Ошибка при обновлении');
+            }
+        } catch (e) {
+            alert('Ошибка соединения с сервером');
+        }
+    }
+
+    // Рендер списка группы
+    function renderGroupList() {
+        const tbody = document.getElementById('groupListTable');
+        tbody.innerHTML = '';
+        groupMembers.forEach((member, idx) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${member.fullName}</td>
+                <td>
+                    ${member.duty}
+                    <button class="edit-duty-btn" data-idx="${idx}" style="margin-left:8px;font-size:13px;">✏️</button>
+                    <button class="delete-member-btn" data-idx="${idx}" style="margin-left:4px;font-size:13px;color:#e74c3c;">🗑️</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        // Навешиваем обработчики на кнопки
+        tbody.querySelectorAll('.edit-duty-btn').forEach(btn => {
+            btn.onclick = function() {
+                const idx = +btn.dataset.idx;
+                openEditDutyModal(idx);
+            };
+        });
+        tbody.querySelectorAll('.delete-member-btn').forEach(btn => {
+            btn.onclick = async function() {
+                const idx = +btn.dataset.idx;
+                if (confirm('Удалить участника?')) {
+                    await deleteGroupMember(idx);
+                }
+            };
+        });
+    }
+
+    // Открытие модального окна для добавления участника
+    document.getElementById('addMemberBtn').onclick = function() {
+        document.getElementById('addMemberModal').style.display = 'flex';
+        document.getElementById('memberFullName').value = '';
+        document.getElementById('memberDuty').value = '';
+        document.getElementById('memberFullName').focus();
+        editMemberIdx = null;
+    };
+
+    // Закрытие модального окна
+    document.getElementById('cancelMemberBtn').onclick = function() {
+        document.getElementById('addMemberModal').style.display = 'none';
+        editMemberIdx = null;
+    };
+
+    // Сохранение нового участника или редактирование
+    document.getElementById('saveMemberBtn').onclick = async function() {
+        const fullName = document.getElementById('memberFullName').value.trim();
+        const duty = document.getElementById('memberDuty').value.trim();
+        if (!fullName || !duty) return;
+        if (editMemberIdx !== null) {
+            // Редактирование существующего участника
+            await updateGroupMember(editMemberIdx, { fullName, duty });
+            editMemberIdx = null;
+        } else {
+            // Добавление нового участника
+            await addGroupMember({ fullName, duty });
+        }
+        document.getElementById('addMemberModal').style.display = 'none';
+    };
+
+    // Открытие модального окна для редактирования обязанности
+    function openEditDutyModal(idx) {
+        editMemberIdx = idx;
+        document.getElementById('editDutyInput').value = groupMembers[idx].duty;
+        document.getElementById('editDutyModal').style.display = 'flex';
+    }
+
+    // Сохранение изменения обязанности
+    document.getElementById('saveEditDutyBtn').onclick = async function() {
+        if (editMemberIdx === null) return;
+        const newDuty = document.getElementById('editDutyInput').value.trim();
+        if (!newDuty) return;
+        await updateGroupMember(editMemberIdx, {
+            fullName: groupMembers[editMemberIdx].fullName,
+            duty: newDuty
+        });
+        document.getElementById('editDutyModal').style.display = 'none';
+        editMemberIdx = null;
+    };
+
+    // Закрытие модального окна редактирования обязанности
+    document.getElementById('cancelEditDutyBtn').onclick = function() {
+        document.getElementById('editDutyModal').style.display = 'none';
+        editMemberIdx = null;
+    };
+
+    document.addEventListener('DOMContentLoaded', fetchGroupMembers);
     </script>
     <script>
     // --- Копия логики с главной страницы, адаптированная для куратора ---
