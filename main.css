@@ -829,9 +829,6 @@ a, a:visited, a:hover, a:active {
     transition: background 0.2s;
 }
 
-#groupListTable th, #groupListTable td {
-    background: #fff; /* если нужно, чтобы фон всегда был белым */
-}
 
 .edit-duty-btn,
 .delete-member-btn,
