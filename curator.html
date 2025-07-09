@@ -625,12 +625,14 @@ async function addGroupMember(member) {
 async function deleteGroupMember(idx) {
     const member = groupMembers[idx];
     try {
-        // Если есть id, используйте его, иначе по ФИО
-        const res = await fetch('https://rapartichka-site.onrender.com/group-members/' + (member.id || encodeURIComponent(member.fullName)), {
-            method: 'DELETE'
+        const res = await fetch('https://rapartichka-site.onrender.com/group-members', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: member.id })
         });
         if (res.ok) {
             await fetchGroupMembers();
+            renderMembersListInModal();
         } else {
             alert('Ошибка при удалении');
         }
@@ -639,34 +641,36 @@ async function deleteGroupMember(idx) {
     }
 }
 
-function openEditDutyModal(idx) {
-    const member = groupMembers[idx];
-    document.getElementById('editDutyModal').style.display = 'flex';
-    document.getElementById('editDutyInput').value = member.duty;
-    document.getElementById('editDutyInput').focus();
-
-    // Сохраняем индекс для дальнейшего использования
-    document.getElementById('saveEditDutyBtn').onclick = async function() {
-        const newDuty = document.getElementById('editDutyInput').value.trim();
-        if (!newDuty) return;
-        await updateGroupMemberDuty(idx, newDuty);
-        document.getElementById('editDutyModal').style.display = 'none';
-    };
-    document.getElementById('cancelEditDutyBtn').onclick = function() {
-        document.getElementById('editDutyModal').style.display = 'none';
-    };
-}
-
 async function updateGroupMemberDuty(idx, newDuty) {
     const member = groupMembers[idx];
     try {
-        const res = await fetch('https://rapartichka-site.onrender.com/group-members/' + (member.id || encodeURIComponent(member.fullName)), {
+        const res = await fetch('https://rapartichka-site.onrender.com/group-members', {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ duty: newDuty })
+            body: JSON.stringify({ id: member.id, fullName: member.fullName, duty: newDuty })
         });
         if (res.ok) {
             await fetchGroupMembers();
+            renderMembersListInModal();
+        } else {
+            alert('Ошибка при обновлении');
+        }
+    } catch (e) {
+        alert('Ошибка соединения с сервером');
+    }
+}
+
+async function updateGroupMember(idx, member) {
+    const old = groupMembers[idx];
+    try {
+        const res = await fetch('https://rapartichka-site.onrender.com/group-members', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: old.id, fullName: member.fullName, duty: member.duty })
+        });
+        if (res.ok) {
+            await fetchGroupMembers();
+            renderMembersListInModal();
         } else {
             alert('Ошибка при обновлении');
         }
