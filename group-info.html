@@ -138,7 +138,6 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('saveGroupNameBtn').onclick = async function() {
         const newName = document.getElementById('groupNameInput').value.trim();
         if (!newName) return;
-        // Сохраняем на сервере
         try {
             const res = await fetch('https://rapartichka-site.onrender.com/group-info', {
                 method: 'PATCH',
@@ -146,8 +145,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: JSON.stringify({ name: newName })
             });
             if (res.ok) {
-                groupName = newName;
-                renderGroupName();
+                await fetchGroupName(); // <-- обновляем с сервера!
             } else {
                 alert('Ошибка сохранения');
             }
