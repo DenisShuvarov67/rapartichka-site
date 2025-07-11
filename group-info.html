@@ -78,6 +78,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
     <script>
 let groupMembers = [];
+let editMemberIdx = null;
+
 // --- Новый блок для работы с названием группы ---
 let groupName = "Загрузка...";
 
@@ -156,8 +158,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // --- Остальной ваш код (работа с участниками) ---
-let editMemberIdx = null;
-
 async function fetchGroupMembers() {
     try {
         const res = await fetch('https://rapartichka-site.onrender.com/group-members');
