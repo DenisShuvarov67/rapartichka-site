@@ -147,12 +147,12 @@ app.post('/attendance', async (req, res) => {
     const { date, student, subject, status, comment, lesson } = req.body;
     try {
         await pool.query(
-            'INSERT INTO attendance (date, student, subject, status, comment, lesson) VALUES ($1, $2, $3, $4, $5, $6)',
+            'INSERT INTO attendance (date, student_id, subject_id, status, comment, lesson) VALUES ($1, $2, $3, $4, $5, $6)',
             [date, student, subject, status, comment, lesson]
         );
         res.json({ success: true });
     } catch (e) {
-        res.status(500).json({ error: 'Ошибка базы данных' });
+        res.status(500).json({ error: 'Ошибка базы данных', details: e.message });
     }
 });
 
