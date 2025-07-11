@@ -478,6 +478,51 @@ app.delete('/group-members', async (req, res) => {
     }
 });
 
+// Изменить участника группы (ФИО и/или обязанность)
+app.patch('/group-members', async (req, res) => {
+    const { id, fullName, duty } = req.body;
+    if (!id) return res.status(400).json({ error: 'Не передан id' });
+    try {
+        await pool.query(
+            'UPDATE group_members SET full_name = $1, duty = $2 WHERE id = $3',
+            [fullName, duty, id]
+        );
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: 'Ошибка базы данных' });
+    }
+});
+
+// Получить название группы
+app.get('/group-info', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT name FROM group_info WHERE id = 1');
+        if (result.rows.length) {
+            res.json({ name: result.rows[0].name });
+        } else {
+            res.json({ name: 'Без названия' });
+        }
+    } catch (e) {
+        res.status(500).json({ error: 'Ошибка базы данных' });
+    }
+});
+
+// Изменить название группы
+app.patch('/group-info', async (req, res) => {
+    const { name } = req.body;
+    if (!name) return res.status(400).json({ error: 'Не указано название' });
+    try {
+        await pool.query(
+            `INSERT INTO group_info(id, name) VALUES (1, $1)
+             ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name`,
+            [name]
+        );
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: 'Ошибка базы данных' });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Сервер запущен на https://rapartichka-site.onrender.com`);
 });
