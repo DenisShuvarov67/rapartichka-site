@@ -317,6 +317,7 @@
                     html += `
                     <div class="attendance-card ${statusClass}">
                         <div><strong>Дата:</strong> ${row.date || ''}</div>
+                        <div><strong>Пара:</strong> ${row.lesson ? row.lesson + ' пара' : ''}</div>
                         <div><strong>ФИО:</strong> ${row.student || ''}</div>
                         <div><strong>Предмет:</strong> ${row.subject || ''}</div>
                         <div><strong>Статус:</strong>

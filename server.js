@@ -144,19 +144,11 @@ app.post('/login', (req, res) => {
 
 // Добавление новой записи о посещаемости в базу данных
 app.post('/attendance', async (req, res) => {
-    const { date, student, subject, status, comment } = req.body;
+    const { date, student, subject, status, comment, lesson } = req.body;
     try {
-        const studentId = Number(student);
-        const subjectId = Number(subject);
-        // Проверяем, что такие id есть в базе
-        const studentResult = await pool.query('SELECT id FROM students WHERE id = $1', [studentId]);
-        const subjectResult = await pool.query('SELECT id FROM subjects WHERE id = $1', [subjectId]);
-        if (!studentResult.rows.length || !subjectResult.rows.length) {
-            return res.status(400).json({ error: 'Студент или предмет не найден' });
-        }
         await pool.query(
-            'INSERT INTO attendance(date, student_id, subject_id, status, comment) VALUES($1, $2, $3, $4, $5)',
-            [date, studentId, subjectId, status, comment]
+            'INSERT INTO attendance (date, student, subject, status, comment, lesson) VALUES ($1, $2, $3, $4, $5, $6)',
+            [date, student, subject, status, comment, lesson]
         );
         res.json({ success: true });
     } catch (e) {
