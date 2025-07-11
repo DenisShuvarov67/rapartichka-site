@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Информация о группе</title>
+    <link rel="stylesheet" href="main.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="sidebar" id="sidebar">
+        <a href="index.html" class="sidebar-link" title="Главная">
+            <span class="sidebar-icon"><i class="fas fa-home"></i></span>
+            <span class="sidebar-label">Главная</span>
+        </a>
+        <a href="group-info.html" class="sidebar-link active" title="Информация о группе">
+            <span class="sidebar-icon"><i class="fas fa-users"></i></span>
+            <span class="sidebar-label">О группе</span>
+        </a>
+        <!-- Добавьте остальные ссылки по аналогии -->
+    </nav>
+    <div class="main-wrapper">
+        <div class="container">
+             <h2>Информация о группе</h2>
+            <p>
+    <b>Название группы:</b>
+    <span id="groupName">Загрузка...</span>
+    <input id="groupNameInput" type="text" style="display:none;width:180px;">
+    <button id="saveGroupNameBtn" style="display:none;">Сохранить</button>
+    <button id="editGroupNameBtn" style="display:none;">✏️</button>
+</p>
+            <p><b>Куратор:</b> <span id="curatorName">Загрузка...</span></p>
+            <p><b>Староста:</b> <span id="headmanName">Загрузка...</span></p>
+            <p><b>Количество студентов:</b> <span id="studentsCount">Загрузка...</span></p>
+            <h3>Состав группы</h3>
+            <ul id="studentsList"></ul>
+            <div style="max-width:700px;margin-bottom:32px;">
+                <div>
+                    <h3>Список группы и обязанности</h3>
+                    <button id="addMemberBtn" style="margin-bottom:12px;padding:8px 18px;font-size:15px;">Добавить участника</button>
+                    <table border="1" cellpadding="6" style="width:100%;border-collapse:collapse;">
+                        <thead>
+                            <tr>
+                                <th>ФИО</th>
+                                <th>Обязанность</th>
+                            </tr>
+                        </thead>
+                        <tbody id="groupListTable">
+                            <!-- Данные будут добавлены скриптом -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Модальное окно для добавления участника -->
+    <div id="addMemberModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:1000; align-items:center; justify-content:center;">
+        <div style="background:#fff; padding:24px; border-radius:8px; min-width:300px;">
+            <h3>Добавить участника</h3>
+            <input id="memberFullName" type="text" placeholder="ФИО" style="width:100%;padding:8px;margin-bottom:8px;">
+            <input id="memberDuty" type="text" placeholder="Обязанность" style="width:100%;padding:8px;margin-bottom:8px;">
+            <div style="margin-top:12px; text-align:right;">
+                <button id="saveMemberBtn" style="padding:6px 16px;">Сохранить</button>
+                <button id="cancelMemberBtn" style="padding:6px 16px;">Отмена</button>
+            </div>
+        </div>
+    </div>
+    <!-- Модальное окно для редактирования обязанности -->
+    <div id="editDutyModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:1000; align-items:center; justify-content:center;">
+        <div style="background:#fff; padding:24px; border-radius:8px; min-width:300px;">
+            <h3>Изменить обязанность</h3>
+            <input id="editDutyInput" type="text" placeholder="Новая обязанность" style="width:100%;padding:8px;margin-bottom:8px;">
+            <div style="margin-top:12px; text-align:right;">
+                <button id="saveEditDutyBtn" style="padding:6px 16px;">Сохранить</button>
+                <button id="cancelEditDutyBtn" style="padding:6px 16px;">Отмена</button>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
+    <script>
+let groupMembers = [];
+// --- Новый блок для работы с названием группы ---
+let groupName = "Загрузка...";
+
+// Проверяем роль пользователя
+let currentUser = null;
+try {
+    currentUser = JSON.parse(localStorage.getItem('currentUser'));
+} catch(e) {}
+
+function canEditGroupName() {
+    if (!currentUser) return false;
+    const role = (currentUser.role || '').toLowerCase();
+    const roleName = (currentUser.roleName || '').toLowerCase();
+    return role === 'admin' || roleName === 'администратор' || role === 'curator' || roleName === 'куратор';
+}
+
+async function fetchGroupName() {
+    try {
+        const res = await fetch('https://rapartichka-site.onrender.com/group-info');
+        if (res.ok) {
+            const data = await res.json();
+            groupName = data.name || "Без названия";
+        } else {
+            groupName = "Без названия";
+        }
+    } catch {
+        groupName = "Без названия";
+    }
+    renderGroupName();
+}
+
+function renderGroupName() {
+    document.getElementById('groupName').textContent = groupName;
+    if (canEditGroupName()) {
+        document.getElementById('editGroupNameBtn').style.display = '';
+    } else {
+        document.getElementById('editGroupNameBtn').style.display = 'none';
+    }
+    document.getElementById('groupName').style.display = '';
+    document.getElementById('groupNameInput').style.display = 'none';
+    document.getElementById('saveGroupNameBtn').style.display = 'none';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    fetchGroupName();
+
+    document.getElementById('editGroupNameBtn').onclick = function() {
+        document.getElementById('groupName').style.display = 'none';
+        document.getElementById('editGroupNameBtn').style.display = 'none';
+        document.getElementById('groupNameInput').style.display = '';
+        document.getElementById('saveGroupNameBtn').style.display = '';
+        document.getElementById('groupNameInput').value = groupName;
+        document.getElementById('groupNameInput').focus();
+    };
+
+    document.getElementById('saveGroupNameBtn').onclick = async function() {
+        const newName = document.getElementById('groupNameInput').value.trim();
+        if (!newName) return;
+        // Сохраняем на сервере
+        try {
+            const res = await fetch('https://rapartichka-site.onrender.com/group-info', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: newName })
+            });
+            if (res.ok) {
+                groupName = newName;
+                renderGroupName();
+            } else {
+                alert('Ошибка сохранения');
+            }
+        } catch {
+            alert('Ошибка соединения с сервером');
+        }
+    };
+});
+
+// --- Остальной ваш код (работа с участниками) ---
+let editMemberIdx = null;
+
+async function fetchGroupMembers() {
+    try {
+        const res = await fetch('https://rapartichka-site.onrender.com/group-members');
+        if (res.ok) {
+            groupMembers = await res.json();
+            renderGroupList();
+        } else {
+            groupMembers = [];
+            renderGroupList();
+        }
+    } catch (e) {
+        groupMembers = [];
+        renderGroupList();
+    }
+}
+
+async function addGroupMember(member) {
+    try {
+        const res = await fetch('https://rapartichka-site.onrender.com/group-members', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(member)
+        });
+        if (res.ok) {
+            await fetchGroupMembers();
+        } else {
+            alert('Ошибка при добавлении участника');
+        }
+    } catch (e) {
+        alert('Ошибка соединения с сервером');
+    }
+}
+
+async function deleteGroupMember(idx) {
+    const member = groupMembers[idx];
+    try {
+        const res = await fetch('https://rapartichka-site.onrender.com/group-members', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: member.id })
+        });
+        if (res.ok) {
+            await fetchGroupMembers();
+        } else {
+            alert('Ошибка при удалении');
+        }
+    } catch (e) {
+        alert('Ошибка соединения с сервером');
+    }
+}
+
+async function updateGroupMember(idx, member) {
+    const old = groupMembers[idx];
+    try {
+        const res = await fetch('https://rapartichka-site.onrender.com/group-members', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: old.id, fullName: member.fullName, duty: member.duty })
+        });
+        if (res.ok) {
+            await fetchGroupMembers();
+        } else {
+            alert('Ошибка при обновлении');
+        }
+    } catch (e) {
+        alert('Ошибка соединения с сервером');
+    }
+}
+
+function renderGroupList() {
+    const tbody = document.getElementById('groupListTable');
+    tbody.innerHTML = '';
+    groupMembers.forEach((member, idx) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${member.fullName}</td>
+            <td>
+                ${member.duty}
+                <button class="edit-duty-btn" data-idx="${idx}" style="margin-left:8px;font-size:13px;">✏️</button>
+                <button class="delete-member-btn" data-idx="${idx}" style="margin-left:4px;font-size:13px;color:#e74c3c;">🗑️</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    tbody.querySelectorAll('.edit-duty-btn').forEach(btn => {
+        btn.onclick = function() {
+            const idx = +btn.dataset.idx;
+            openEditDutyModal(idx);
+        };
+    });
+    tbody.querySelectorAll('.delete-member-btn').forEach(btn => {
+        btn.onclick = async function() {
+            const idx = +btn.dataset.idx;
+            if (confirm('Удалить участника?')) {
+                await deleteGroupMember(idx);
+            }
+        };
+    });
+}
+
+document.getElementById('addMemberBtn').onclick = function() {
+    document.getElementById('addMemberModal').style.display = 'flex';
+    document.getElementById('memberFullName').value = '';
+    document.getElementById('memberDuty').value = '';
+    document.getElementById('memberFullName').focus();
+    editMemberIdx = null;
+};
+
+document.getElementById('cancelMemberBtn').onclick = function() {
+    document.getElementById('addMemberModal').style.display = 'none';
+    editMemberIdx = null;
+};
+
+document.getElementById('saveMemberBtn').onclick = async function() {
+    const fullName = document.getElementById('memberFullName').value.trim();
+    const duty = document.getElementById('memberDuty').value.trim();
+    if (!fullName || !duty) return;
+    if (editMemberIdx !== null) {
+        await updateGroupMember(editMemberIdx, { fullName, duty });
+        editMemberIdx = null;
+    } else {
+        await addGroupMember({ fullName, duty });
+    }
+    document.getElementById('addMemberModal').style.display = 'none';
+};
+
+function openEditDutyModal(idx) {
+    editMemberIdx = idx;
+    document.getElementById('editDutyInput').value = groupMembers[idx].duty;
+    document.getElementById('editDutyModal').style.display = 'flex';
+}
+
+document.getElementById('saveEditDutyBtn').onclick = async function() {
+    if (editMemberIdx === null) return;
+    const newDuty = document.getElementById('editDutyInput').value.trim();
+    if (!newDuty) return;
+    await updateGroupMember(editMemberIdx, {
+        fullName: groupMembers[editMemberIdx].fullName,
+        duty: newDuty
+    });
+    document.getElementById('editDutyModal').style.display = 'none';
+    editMemberIdx = null;
+};
+
+document.getElementById('cancelEditDutyBtn').onclick = function() {
+    document.getElementById('editDutyModal').style.display = 'none';
+    editMemberIdx = null;
+};
+
+document.addEventListener('DOMContentLoaded', fetchGroupMembers);
+    </script>
+</body>
+</html>
