@@ -523,6 +523,22 @@ app.patch('/group-info', async (req, res) => {
     }
 });
 
+// Получить куратора группы из users.json
+app.get('/curator', (req, res) => {
+    if (!fs.existsSync(USERS_FILE)) return res.json({ curator: null });
+    const users = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
+    // Ищем пользователя с ролью "куратор" или "curator"
+    const curator = users.find(u =>
+        (u.role && u.role.toLowerCase() === 'curator') ||
+        (u.roleName && u.roleName.toLowerCase() === 'куратор')
+    );
+    if (curator) {
+        res.json({ curator: curator.fullName || curator.username });
+    } else {
+        res.json({ curator: null });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Сервер запущен на https://rapartichka-site.onrender.com`);
 });

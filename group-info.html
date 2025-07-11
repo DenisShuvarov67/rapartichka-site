@@ -123,8 +123,24 @@ function renderGroupName() {
     document.getElementById('saveGroupNameBtn').style.display = 'none';
 }
 
+async function fetchCurator() {
+    try {
+        const res = await fetch('https://rapartichka-site.onrender.com/curator');
+        if (res.ok) {
+            const data = await res.json();
+            document.getElementById('curatorName').textContent = data.curator || 'Не назначен';
+        } else {
+            document.getElementById('curatorName').textContent = 'Ошибка';
+        }
+    } catch {
+        document.getElementById('curatorName').textContent = 'Ошибка';
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     fetchGroupName();
+    fetchCurator(); // <-- добавьте этот вызов
+    fetchGroupMembers();
 
     document.getElementById('editGroupNameBtn').onclick = function() {
         document.getElementById('groupName').style.display = 'none';
