@@ -166,7 +166,8 @@ app.get('/absences', async (req, res) => {
                 students.name AS student,
                 subjects.name AS subject,
                 attendance.status,
-                attendance.comment
+                attendance.comment,
+                attendance.lesson -- добавьте это поле!
             FROM attendance
             LEFT JOIN students ON attendance.student_id = students.id
             LEFT JOIN subjects ON attendance.subject_id = subjects.id
