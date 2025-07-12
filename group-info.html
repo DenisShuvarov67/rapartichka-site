@@ -356,6 +356,27 @@ document.getElementById('cancelEditDutyBtn').onclick = function() {
 };
 
 document.addEventListener('DOMContentLoaded', fetchGroupMembers);
+
+// Открытие/закрытие сайдбара по кнопке-бургеру
+document.getElementById('sidebarToggleBtn').onclick = function(e) {
+    e.stopPropagation();
+    document.body.classList.toggle('sidebar-open');
+    document.getElementById('sidebar').classList.toggle('open');
+};
+
+// Закрытие сайдбара при клике вне его (на мобильных)
+document.addEventListener('click', function(e) {
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('sidebarToggleBtn');
+    if (
+        document.body.classList.contains('sidebar-open') &&
+        !sidebar.contains(e.target) &&
+        e.target !== toggleBtn
+    ) {
+        document.body.classList.remove('sidebar-open');
+        sidebar.classList.remove('open');
+    }
+});
     </script>
 </body>
 </html>
