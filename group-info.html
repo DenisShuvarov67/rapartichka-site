@@ -7,17 +7,45 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <nav class="sidebar" id="sidebar">
-        <a href="index.html" class="sidebar-link" title="Главная">
-            <span class="sidebar-icon"><i class="fas fa-home"></i></span>
-            <span class="sidebar-label">Главная</span>
-        </a>
-        <a href="group-info.html" class="sidebar-link active" title="Информация о группе">
-            <span class="sidebar-icon"><i class="fas fa-users"></i></span>
-            <span class="sidebar-label">О группе</span>
-        </a>
-        <!-- Добавьте остальные ссылки по аналогии -->
-    </nav>
+    <!-- Сайдбар -->
+<nav class="sidebar" id="sidebar">
+    <a href="index.html" class="sidebar-link" title="Главная">
+        <span class="sidebar-icon"><i class="fas fa-home"></i></span>
+        <span class="sidebar-label">Главная</span>
+    </a>
+    <a href="attendance.html" class="sidebar-link" title="Отметить явку">
+        <span class="sidebar-icon"><i class="fas fa-user-check"></i></span>
+        <span class="sidebar-label">Явка</span>
+    </a>
+    <a href="absences.html" class="sidebar-link" title="Явка за месяц">
+        <span class="sidebar-icon"><i class="fas fa-chart-bar"></i></span>
+        <span class="sidebar-label">Явка за месяц</span>
+    </a>
+    <a href="students.html" class="sidebar-link" title="Панель старосты и его зама">
+        <span class="sidebar-icon"><i class="fas fa-user-graduate"></i></span>
+        <span class="sidebar-label">Панель старосты и его зама</span>
+    </a>
+    <a href="https://t.me/+rkj_U8Ou3uYyMzNi" class="sidebar-link" title="Чат в Telegram" target="_blank" rel="noopener">
+        <span class="sidebar-icon"><i class="fab fa-telegram-plane"></i></span>
+        <span class="sidebar-label">Telegram чат</span>
+    </a>
+    <a id="adminLink" href="admin.html" class="sidebar-link">
+        <span class="sidebar-icon"><i class="fas fa-user-shield"></i></span>
+        <span class="sidebar-label">Админ<br>панель</span>
+    </a>
+    <a href="settings.html" class="sidebar-link" title="Настройки">
+        <span class="sidebar-icon"><i class="fas fa-cog"></i></span>
+        <span class="sidebar-label settings-label">Настройки</span>
+    </a>
+    <a href="group-info.html" class="sidebar-link active" title="Информация о группе">
+        <span class="sidebar-icon"><i class="fas fa-users"></i></span>
+        <span class="sidebar-label">О группе</span>
+    </a>
+    <button class="logout-btn" id="logoutBtn">
+        <span class="sidebar-icon"><i class="fas fa-sign-out-alt"></i></span>
+        <span class="logout-label">Выйти</span>
+    </button>
+</nav>
     <div class="main-wrapper">
         <div class="container">
              <h2>Информация о группе</h2>
