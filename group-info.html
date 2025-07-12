@@ -62,8 +62,20 @@
     <button id="editGroupNameBtn" style="display:none;">✏️</button>
 </p>
             <p><b>Куратор:</b> <span id="curatorName">Загрузка...</span></p>
-            <p><b>Староста:</b> <span id="headmanName">Загрузка...</span></p>
-            <p><b>Количество студентов:</b> <span id="studentsCount">Загрузка...</span></p>
+            <p>
+              <b>Староста:</b>
+              <span id="headmanName">Загрузка...</span>
+              <input id="headmanInput" type="text" style="display:none;width:180px;">
+              <button id="saveHeadmanBtn" style="display:none;">Сохранить</button>
+              <button id="editHeadmanBtn" style="display:none;">✏️</button>
+            </p>
+            <p>
+              <b>Количество студентов:</b>
+              <span id="studentsCount">Загрузка...</span>
+              <input id="studentsCountInput" type="number" min="1" style="display:none;width:80px;">
+              <button id="saveStudentsCountBtn" style="display:none;">Сохранить</button>
+              <button id="editStudentsCountBtn" style="display:none;">✏️</button>
+            </p>
             <h3>Состав группы</h3>
             <ul id="studentsList"></ul>
             <div style="max-width:700px;margin-bottom:32px;">
@@ -115,20 +127,18 @@ let editMemberIdx = null;
 
 // --- Новый блок для работы с названием группы ---
 let groupName = "Загрузка...";
+let headmanName = "Загрузка...";
+let studentsCount = "Загрузка...";
 
-// Проверяем роль пользователя
-let currentUser = null;
-try {
-    currentUser = JSON.parse(localStorage.getItem('currentUser'));
-} catch(e) {}
-
-function canEditGroupName() {
+// Проверка прав
+function canEditGroupInfo() {
     if (!currentUser) return false;
     const role = (currentUser.role || '').toLowerCase();
     const roleName = (currentUser.roleName || '').toLowerCase();
     return role === 'admin' || roleName === 'администратор' || role === 'curator' || roleName === 'куратор';
 }
 
+// Получение названия группы
 async function fetchGroupName() {
     try {
         const res = await fetch('https://rapartichka-site.onrender.com/group-info');
@@ -144,6 +154,38 @@ async function fetchGroupName() {
     renderGroupName();
 }
 
+// Получение старосты
+async function fetchHeadman() {
+    try {
+        const res = await fetch('https://rapartichka-site.onrender.com/headman');
+        if (res.ok) {
+            const data = await res.json();
+            headmanName = data.headman || "Не назначен";
+        } else {
+            headmanName = "Не назначен";
+        }
+    } catch {
+        headmanName = "Не назначен";
+    }
+    renderHeadman();
+}
+
+// Получение количества студентов
+async function fetchStudentsCount() {
+    try {
+        const res = await fetch('https://rapartichka-site.onrender.com/students-count');
+        if (res.ok) {
+            const data = await res.json();
+            studentsCount = data.count || 0;
+        } else {
+            studentsCount = 0;
+        }
+    } catch {
+        studentsCount = 0;
+    }
+    renderStudentsCount();
+}
+
 function renderGroupName() {
     document.getElementById('groupName').textContent = groupName;
     if (canEditGroupName()) {
@@ -154,6 +196,30 @@ function renderGroupName() {
     document.getElementById('groupName').style.display = '';
     document.getElementById('groupNameInput').style.display = 'none';
     document.getElementById('saveGroupNameBtn').style.display = 'none';
+}
+
+function renderHeadman() {
+    document.getElementById('headmanName').textContent = headmanName;
+    if (canEditGroupInfo()) {
+        document.getElementById('editHeadmanBtn').style.display = '';
+    } else {
+        document.getElementById('editHeadmanBtn').style.display = 'none';
+    }
+    document.getElementById('headmanName').style.display = '';
+    document.getElementById('headmanInput').style.display = 'none';
+    document.getElementById('saveHeadmanBtn').style.display = 'none';
+}
+
+function renderStudentsCount() {
+    document.getElementById('studentsCount').textContent = studentsCount;
+    if (canEditGroupInfo()) {
+        document.getElementById('editStudentsCountBtn').style.display = '';
+    } else {
+        document.getElementById('editStudentsCountBtn').style.display = 'none';
+    }
+    document.getElementById('studentsCount').style.display = '';
+    document.getElementById('studentsCountInput').style.display = 'none';
+    document.getElementById('saveStudentsCountBtn').style.display = 'none';
 }
 
 async function fetchCurator() {
@@ -174,6 +240,8 @@ document.addEventListener('DOMContentLoaded', function() {
     fetchGroupName();
     fetchCurator(); // <-- добавьте этот вызов
     fetchGroupMembers();
+    fetchHeadman();
+    fetchStudentsCount();
 
     document.getElementById('editGroupNameBtn').onclick = function() {
         document.getElementById('groupName').style.display = 'none';
@@ -195,6 +263,62 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             if (res.ok) {
                 await fetchGroupName(); // <-- обновляем с сервера!
+            } else {
+                alert('Ошибка сохранения');
+            }
+        } catch {
+            alert('Ошибка соединения с сервером');
+        }
+    };
+
+    // Староста
+    document.getElementById('editHeadmanBtn').onclick = function() {
+        document.getElementById('headmanName').style.display = 'none';
+        document.getElementById('editHeadmanBtn').style.display = 'none';
+        document.getElementById('headmanInput').style.display = '';
+        document.getElementById('saveHeadmanBtn').style.display = '';
+        document.getElementById('headmanInput').value = headmanName;
+        document.getElementById('headmanInput').focus();
+    };
+    document.getElementById('saveHeadmanBtn').onclick = async function() {
+        const newName = document.getElementById('headmanInput').value.trim();
+        if (!newName) return;
+        try {
+            const res = await fetch('https://rapartichka-site.onrender.com/headman', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ headman: newName })
+            });
+            if (res.ok) {
+                await fetchHeadman();
+            } else {
+                alert('Ошибка сохранения');
+            }
+        } catch {
+            alert('Ошибка соединения с сервером');
+        }
+    };
+
+    // Количество студентов
+    document.getElementById('editStudentsCountBtn').onclick = function() {
+        document.getElementById('studentsCount').style.display = 'none';
+        document.getElementById('editStudentsCountBtn').style.display = 'none';
+        document.getElementById('studentsCountInput').style.display = '';
+        document.getElementById('saveStudentsCountBtn').style.display = '';
+        document.getElementById('studentsCountInput').value = studentsCount;
+        document.getElementById('studentsCountInput').focus();
+    };
+    document.getElementById('saveStudentsCountBtn').onclick = async function() {
+        const newCount = parseInt(document.getElementById('studentsCountInput').value, 10);
+        if (!newCount || newCount < 1) return;
+        try {
+            const res = await fetch('https://rapartichka-site.onrender.com/students-count', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ count: newCount })
+            });
+            if (res.ok) {
+                await fetchStudentsCount();
             } else {
                 alert('Ошибка сохранения');
             }

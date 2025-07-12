@@ -532,6 +532,54 @@ app.get('/curator', (req, res) => {
     }
 });
 
+// Получить старосту
+app.get('/headman', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT headman FROM group_info WHERE id = 1');
+        res.json({ headman: result.rows[0]?.headman || null });
+    } catch {
+        res.json({ headman: null });
+    }
+});
+
+// Изменить старосту
+app.patch('/headman', async (req, res) => {
+    const { headman } = req.body;
+    try {
+        await pool.query(
+            `UPDATE group_info SET headman = $1 WHERE id = 1`,
+            [headman]
+        );
+        res.json({ success: true });
+    } catch {
+        res.status(500).json({ error: 'Ошибка базы данных' });
+    }
+});
+
+// Получить количество студентов
+app.get('/students-count', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT students_count FROM group_info WHERE id = 1');
+        res.json({ count: result.rows[0]?.students_count || 0 });
+    } catch {
+        res.json({ count: 0 });
+    }
+});
+
+// Изменить количество студентов
+app.patch('/students-count', async (req, res) => {
+    const { count } = req.body;
+    try {
+        await pool.query(
+            `UPDATE group_info SET students_count = $1 WHERE id = 1`,
+            [count]
+        );
+        res.json({ success: true });
+    } catch {
+        res.status(500).json({ error: 'Ошибка базы данных' });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Сервер запущен на https://rapartichka-site.onrender.com`);
 });
