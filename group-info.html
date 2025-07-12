@@ -125,6 +125,13 @@
 let groupMembers = [];
 let editMemberIdx = null;
 
+// --- Добавьте это ---
+let currentUser = null;
+try {
+    currentUser = JSON.parse(localStorage.getItem('currentUser'));
+} catch {}
+// --- конец добавления ---
+
 // --- Новый блок для работы с названием группы ---
 let groupName = "Загрузка...";
 let headmanName = "Загрузка...";
@@ -136,6 +143,10 @@ function canEditGroupInfo() {
     const role = (currentUser.role || '').toLowerCase();
     const roleName = (currentUser.roleName || '').toLowerCase();
     return role === 'admin' || roleName === 'администратор' || role === 'curator' || roleName === 'куратор';
+}
+
+function canEditGroupName() {
+    return canEditGroupInfo();
 }
 
 // Получение названия группы
