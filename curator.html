@@ -426,6 +426,11 @@ document.addEventListener('click', function(e) {
         sidebar.classList.remove('open');
     }
 });
+
+document.getElementById('logoutBtn').onclick = function() {
+    localStorage.removeItem('currentUser');
+    window.location.href = 'login.html';
+};
 </script>
 </body>
 </html>
