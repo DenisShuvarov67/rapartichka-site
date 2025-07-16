@@ -602,7 +602,7 @@ app.post('/block-user', async (req, res) => {
     }
 });
 
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzu4dbz7ZGzewrWAt8py5R__hLW_pBGMoJMnF1tsSQvqBnbxYVFVG9qMG2jBPiV44Z20A/exec'
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz7a5tTz8NVUQlTzGlDn4GxoveNOjM5ka6wttMWMyoI-YYWOLMJ18Brn6aww8hJ1VFNEw/exec'
 
 // Прокси для GET (таблица посещаемости)
 app.get('/google-attendance', async (req, res) => {
