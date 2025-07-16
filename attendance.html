@@ -209,32 +209,31 @@
 
     // Загрузка таблицы посещаемости
     async function loadAttendanceTable() {
-  const res = await fetch('/google-attendance');
-  const text = await res.text();
-  let allData;
-  try {
-    allData = JSON.parse(text);
-  } catch (e) {
-    document.getElementById('attendanceTable').innerHTML = '<b style="color:red">Ошибка загрузки данных</b>';
-    return;
-  }
-  let html = '';
-  for (const [sheetName, data] of Object.entries(allData)) {
-    if (!Array.isArray(data) || data.length === 0) continue;
-    html += `<h3>${sheetName}</h3>`;
-    html += '<table border="1"><tr>';
+    const res = await fetch('/google-attendance');
+    const text = await res.text();
+    let data;
+    try {
+        data = JSON.parse(text);
+    } catch (e) {
+        document.getElementById('attendanceTable').innerHTML = '<b style="color:red">Ошибка загрузки данных</b>';
+        return;
+    }
+    if (!Array.isArray(data) || data.length === 0) {
+        document.getElementById('attendanceTable').innerHTML = '<b>Нет данных</b>';
+        return;
+    }
+    let html = '<table border="1"><tr>';
     // Заголовки из первой строки
     data[0].forEach(col => html += `<th>${col}</th>`);
     html += '</tr>';
     // Данные
     data.slice(1).forEach(row => {
-      html += '<tr>';
-      row.forEach(cell => html += `<td>${cell ?? ''}</td>`);
-      html += '</tr>';
+        html += '<tr>';
+        row.forEach(cell => html += `<td>${cell ?? ''}</td>`);
+        html += '</tr>';
     });
-    html += '</table><br>';
-  }
-  document.getElementById('attendanceTable').innerHTML = html || '<b>Нет данных</b>';
+    html += '</table>';
+    document.getElementById('attendanceTable').innerHTML = html;
 }
     document.addEventListener('DOMContentLoaded', loadAttendanceTable);
 
