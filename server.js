@@ -5,6 +5,16 @@ const path = require('path');
 const http = require('http');
 const { Pool } = require('pg');
 const fetch = require('node-fetch');
+const { google } = require('googleapis');
+
+// --- ВСТАВЬТЕ СЮДА ---
+const CREDENTIALS_PATH = path.join(__dirname, 'credentials.json');
+
+if (process.env.GOOGLE_CREDENTIALS && !fs.existsSync(CREDENTIALS_PATH)) {
+    fs.writeFileSync(CREDENTIALS_PATH, process.env.GOOGLE_CREDENTIALS);
+}
+const SHEETS_CREDENTIALS = CREDENTIALS_PATH;
+// --- КОНЕЦ ВСТАВКИ ---
 
 const app = express();
 
@@ -607,38 +617,41 @@ const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz7a5tTz8NVUQ
 // Прокси для GET (таблица посещаемости)
 app.get('/google-attendance', async (req, res) => {
     try {
-        console.log('Запрос к Google Script...');
-        const fetchRes = await fetch(GOOGLE_SCRIPT_URL);
-        const text = await fetchRes.text();
-        console.log('Ответ Google Script:', text); // Диагностика!
-        try {
-            const json = JSON.parse(text);
-            res.setHeader('Content-Type', 'application/json');
-            res.send(JSON.stringify(json));
-        } catch (err) {
-            console.log('Ошибка парсинга:', text);
-            res.status(500).json({ error: 'Google Script вернул не JSON', details: text });
-        }
+        const client = await sheetsAuth.getClient();
+        const sheets = google.sheets({ version: 'v4', auth: client });
+        const response = await sheets.spreadsheets.values.get({
+            spreadsheetId: SHEET_ID,
+            range: 'Лист1!A1:E100', // диапазон в вашей таблице
+        });
+        res.json(response.data.values);
     } catch (e) {
-        console.log('Ошибка запроса к Google Script:', e);
-        res.status(500).json({ error: 'Ошибка прокси Google Script' });
+        res.status(500).json({ error: 'Ошибка Google Sheets API', details: e.message });
     }
 });
 
 // Прокси для POST (отправка формы)
 app.post('/google-attendance', async (req, res) => {
     try {
-        const fetchRes = await fetch(GOOGLE_SCRIPT_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(req.body)
+        const client = await sheetsAuth.getClient();
+        const sheets = google.sheets({ version: 'v4', auth: client });
+        const values = [Object.values(req.body)];
+        await sheets.spreadsheets.values.append({
+            spreadsheetId: SHEET_ID,
+            range: 'Лист1!A1', // диапазон для добавления
+            valueInputOption: 'RAW',
+            resource: { values },
         });
-        const data = await fetchRes.text();
-        res.setHeader('Content-Type', 'application/json');
-        res.send(data);
+        res.json({ success: true });
     } catch (e) {
-        res.status(500).json({ error: 'Ошибка прокси Google Script' });
+        res.status(500).json({ error: 'Ошибка Google Sheets API', details: e.message });
     }
+});
+
+const SHEET_ID = '1D9q9pgjVbQIHoF6WBv4muId-w2hmh6ZgBZJjt-bvmvE'; // скопируйте из адреса Google Таблицы
+
+const sheetsAuth = new google.auth.GoogleAuth({
+    keyFile: SHEETS_CREDENTIALS,
+    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
 });
 
 app.listen(PORT, () => {
