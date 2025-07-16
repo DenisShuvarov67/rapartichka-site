@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Настройки</title>
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    <style>
+        body.light {
+            background: #f4f6fa;
+            color: #222;
+        }
+        .settings-block {
+            max-width: 900px;
+            margin: 60px auto;
+            background: #23262C;
+            border-radius: 18px;
+            padding: 36px 28px;
+            box-shadow: 0 4px 32px 0 #0003;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 32px;
+            flex-direction: row; /* теперь секции идут в ряд */
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .settings-block > div {
+            flex: 1 1 340px;
+            min-width: 320px;
+            max-width: 420px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: none;
+            box-shadow: none;
+            margin: 0;
+        }
+        body.light .settings-block {
+            background: #fff;
+            color: #222;
+        }
+        .settings-block h2 {
+            flex-basis: 100%;
+            width: 100%;
+            margin-bottom: 24px;
+        }
+        .theme-switcher {
+            margin-bottom: 32px;
+        }
+        .theme-switcher label {
+            font-size: 1.1em;
+            margin-right: 16px;
+        }
+        .password-section input {
+            margin-bottom: 10px;
+            width: 100%;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+        .password-section button {
+            background: #27ae60;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 0;
+            width: 100%;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        .password-section button:disabled {
+            background: #aaa;
+            cursor: not-allowed;
+        }
+        .info-message {
+            margin-top: 10px;
+            color: #27ae60;
+        }
+        .error-message {
+            margin-top: 10px;
+            color: #e74c3c;
+        }
+        @media (max-width: 900px) {
+            .settings-block {
+                flex-direction: column;
+                gap: 24px;
+                padding: 24px 8px;
+            }
+            .settings-block > div {
+                max-width: 100%;
+                min-width: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="topbar" id="topbar">
+        <div class="topbar-links" id="topbarLinks">
+            <a href="index.html" class="sidebar-link" title="Главная">
+                <span class="sidebar-icon"><i class="fas fa-home"></i></span>
+                <span class="sidebar-label">Главная</span>
+            </a>
+            <a href="attendance.html" class="sidebar-link" title="Отметить явку">
+                <span class="sidebar-icon"><i class="fas fa-user-check"></i></span>
+                <span class="sidebar-label">Явка</span>
+            </a>
+            <a href="absences.html" class="sidebar-link" title="Явка за месяц">
+                <span class="sidebar-icon"><i class="fas fa-chart-bar"></i></span>
+                <span class="sidebar-label">Явка за месяц</span>
+            </a>
+            <a href="students.html" class="sidebar-link" title="Панель старосты и его зама">
+                <span class="sidebar-icon"><i class="fas fa-user-graduate"></i></span>
+                <span class="sidebar-label">Панель старосты и его зама</span>
+            </a>
+            <a id="adminLink" href="admin.html" class="sidebar-link" style="display:none;">
+                <span class="sidebar-icon"><i class="fas fa-user-shield"></i></span>
+                <span class="sidebar-label">Админ<br>панель</span>
+            </a>
+            <a href="settings.html" class="sidebar-link" title="Настройки">
+                <span class="sidebar-icon"><i class="fas fa-cog"></i></span>
+                <span class="sidebar-label settings-label">Настройки</span>
+            </a>
+            <button class="logout-btn" onclick="window.location.href='login.html'">
+                <span class="sidebar-icon"><i class="fas fa-sign-out-alt"></i></span>
+                <span class="logout-label">Выйти</span>
+            </button>
+        </div>
+    </nav>
+    <div class="settings-block">
+        <h2>Настройки</h2>
+        <div class="theme-switcher">
+            <label>Тема сайта:</label>
+            <select id="themeSelect">
+                <option value="dark">Тёмная</option>
+                <option value="light">Светлая</option>
+            </select>
+        </div>
+        <div class="password-section">
+            <h3>Смена пароля</h3>
+            <input type="password" id="newPassword" placeholder="Новый пароль">
+            <input type="password" id="confirmPassword" placeholder="Подтвердите пароль">
+            <button id="changePasswordBtn">Запросить смену пароля</button>
+
+            <div class="info-message" id="infoMsg"></div>
+            <div class="error-message" id="errorMsg"></div>
+        </div>
+        <div class="profile-section" style="margin-bottom:32px;">
+            <h3>Изменить ФИО</h3>
+            <input type="text" id="newFirstName" placeholder="Новая Фамилия" style="margin-bottom:10px;">
+            <input type="text" id="newLastName" placeholder="Новое Имя" style="margin-bottom:10px;">
+            <input type="text" id="newMiddleName" placeholder="Новое Отчество" style="margin-bottom:10px;">
+            <button id="changeFullNameBtn">Сохранить ФИО</button>
+            <div class="info-message" id="fullNameInfoMsg"></div>
+            <div class="error-message" id="fullNameErrorMsg"></div>
+        </div>
+        <div class="profile-section" style="margin-bottom:32px;">
+            <h3>Изменить имя пользователя</h3>
+            <input type="text" id="newUsername" placeholder="Новое имя пользователя">
+            <button id="changeUsernameBtn">Сменить имя</button>
+            <div class="info-message" id="usernameInfoMsg"></div>
+            <div class="error-message" id="usernameErrorMsg"></div>
+        </div>
+        <div class="language-section" style="margin-bottom:32px;">
+            <h3>Язык интерфейса</h3>
+            <select id="languageSelect">
+                <option value="ru">Русский</option>
+                <option value="en">English</option>
+            </select>
+        </div>
+        <div class="avatar-section" style="margin-bottom:32px;">
+            <h3>Аватар</h3>
+            <img id="userAvatar" src="img/default-avatar.png" alt="Аватар" style="width:90px;height:90px;border-radius:50%;object-fit:cover;margin-bottom:10px;border:2px solid #36d46c;">
+            <input type="file" id="avatarInput" accept="image/*" style="margin-bottom:10px;">
+            <button id="saveAvatarBtn">Сохранить аватар</button>
+            <div class="info-message" id="avatarInfoMsg"></div>
+            <div class="error-message" id="avatarErrorMsg"></div>
+        </div>
+        <div class="admin-credentials-section" id="adminCredentialsSection" style="display:none; margin-bottom:32px;">
+            <h3>Изменить данные входа администратора</h3>
+            <input type="text" id="adminNewLogin" placeholder="Новый логин администратора" style="margin-bottom:10px;">
+            <input type="password" id="adminNewPassword" placeholder="Новый пароль администратора" style="margin-bottom:10px;">
+            <button id="changeAdminCredentialsBtn">Сохранить</button>
+            <div class="info-message" id="adminCredsInfoMsg"></div>
+            <div class="error-message" id="adminCredsErrorMsg"></div>
+        </div>
+    </div>
+    <script>
+        // Тема
+        const themeSelect = document.getElementById('themeSelect');
+        function applyTheme(theme) {
+            if (theme === 'light') {
+                document.body.classList.add('light');
+            } else {
+                document.body.classList.remove('light');
+            }
+        }
+        // Загрузка сохранённой темы
+        const savedTheme = localStorage.getItem('siteTheme') || 'dark';
+        themeSelect.value = savedTheme;
+        applyTheme(savedTheme);
+
+        themeSelect.addEventListener('change', function() {
+            localStorage.setItem('siteTheme', this.value);
+            applyTheme(this.value);
+        });
+
+        // Применение темы ко всем страницам
+        document.addEventListener('DOMContentLoaded', function() {
+            const theme = localStorage.getItem('siteTheme') || 'dark';
+            applyTheme(theme);
+
+            // Проверка роли администратора
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (currentUser && (currentUser.role === 'admin' || currentUser.roleName === 'Администратор')) {
+                document.getElementById('adminCredentialsSection').style.display = '';
+            }
+        });
+
+        // Смена пароля (отправка запроса и обновление user.json)
+        document.getElementById('changePasswordBtn').onclick = function() {
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const infoMsg = document.getElementById('infoMsg');
+            const errorMsg = document.getElementById('errorMsg');
+            infoMsg.textContent = '';
+            errorMsg.textContent = '';
+
+            if (!newPassword || !confirmPassword) {
+                errorMsg.textContent = 'Пожалуйста, заполните оба поля.';
+                return;
+            }
+            if (newPassword !== confirmPassword) {
+                errorMsg.textContent = 'Пароли не совпадают.';
+                return;
+            }
+
+            // Получаем текущего пользователя
+            let currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (!currentUser) {
+                errorMsg.textContent = 'Ошибка: пользователь не найден.';
+                return;
+            }
+
+            // Отправляем запрос на сервер для смены пароля в user.json
+            fetch('https://rapartichka-site.onrender.com/users/' + encodeURIComponent(currentUser.username) + '/password', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: newPassword })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    infoMsg.textContent = 'Пароль успешно изменён!';
+                    document.getElementById('changePasswordBtn').disabled = true;
+                    document.getElementById('newPassword').value = '';
+                    document.getElementById('confirmPassword').value = '';
+                    // Обновляем пароль в currentUser в localStorage (если нужно)
+                    currentUser.password = newPassword;
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                } else {
+                    errorMsg.textContent = data.error || 'Ошибка смены пароля.';
+                }
+            })
+            .catch(() => {
+                errorMsg.textContent = 'Ошибка соединения с сервером.';
+            });
+        };
+
+        // Добавление/смена ФИО студента
+        document.getElementById('changeFullNameBtn').onclick = function() {
+            const newFirstName = document.getElementById('newFirstName').value.trim();
+            const newLastName = document.getElementById('newLastName').value.trim();
+            const newMiddleName = document.getElementById('newMiddleName').value.trim();
+            const infoMsg = document.getElementById('fullNameInfoMsg');
+            const errorMsg = document.getElementById('fullNameErrorMsg');
+            infoMsg.textContent = '';
+            errorMsg.textContent = '';
+
+            if (!newFirstName || !newLastName) {
+                errorMsg.textContent = 'Пожалуйста, заполните оба поля.';
+                return;
+            }
+            let users = JSON.parse(localStorage.getItem('users')) || [];
+            let currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            const fullName = [newFirstName, newLastName, newMiddleName].filter(Boolean).join(' ');
+            users = users.map(u => {
+                if (u.username === currentUser.username) {
+                    u.firstName = newFirstName;
+                    u.lastName = newLastName;
+                    u.middleName = newMiddleName;
+                    u.fullName = fullName;
+                }
+                return u;
+            });
+            currentUser.firstName = newFirstName;
+            currentUser.lastName = newLastName;
+            currentUser.middleName = newMiddleName;
+            currentUser.fullName = fullName;
+            localStorage.setItem('users', JSON.stringify(users));
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            infoMsg.textContent = 'ФИО успешно обновлено!';
+        };
+
+        // Смена имени пользователя
+        document.getElementById('changeUsernameBtn').onclick = function() {
+            const newUsername = document.getElementById('newUsername').value.trim();
+            const infoMsg = document.getElementById('usernameInfoMsg');
+            const errorMsg = document.getElementById('usernameErrorMsg');
+            infoMsg.textContent = '';
+            errorMsg.textContent = '';
+
+            if (!newUsername) {
+                errorMsg.textContent = 'Введите новое имя пользователя.';
+                return;
+            }
+            let users = JSON.parse(localStorage.getItem('users')) || [];
+            let currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (users.some(u => u.username === newUsername)) {
+                errorMsg.textContent = 'Пользователь с таким именем уже существует.';
+                return;
+            }
+            // Обновляем имя пользователя
+            users = users.map(u => {
+                if (u.username === currentUser.username) {
+                    u.username = newUsername;
+                }
+                return u;
+            });
+            currentUser.username = newUsername;
+            localStorage.setItem('users', JSON.stringify(users));
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            infoMsg.textContent = 'Имя пользователя успешно изменено!';
+        };
+
+        // Язык интерфейса
+        const languageSelect = document.getElementById('languageSelect');
+        const savedLang = localStorage.getItem('siteLang') || 'ru';
+        languageSelect.value = savedLang;
+        languageSelect.addEventListener('change', function() {
+            localStorage.setItem('siteLang', this.value);
+            // Здесь можно добавить смену языка интерфейса
+            alert('Язык интерфейса будет изменён при следующем входе.');
+        });
+
+        // --- Аватар ---
+        const avatarInput = document.getElementById('avatarInput');
+        const userAvatar = document.getElementById('userAvatar');
+        const saveAvatarBtn = document.getElementById('saveAvatarBtn');
+        const avatarInfoMsg = document.getElementById('avatarInfoMsg');
+        const avatarErrorMsg = document.getElementById('avatarErrorMsg');
+
+        // Загрузка текущего аватара
+        let currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (currentUser && currentUser.avatar) {
+            userAvatar.src = currentUser.avatar;
+        }
+
+        // Предпросмотр выбранного файла
+        avatarInput.addEventListener('change', function() {
+            avatarInfoMsg.textContent = '';
+            avatarErrorMsg.textContent = '';
+            const file = avatarInput.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    userAvatar.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                avatarErrorMsg.textContent = 'Пожалуйста, выберите изображение.';
+            }
+        });
+
+        // Сохранение аватара
+        saveAvatarBtn.onclick = function() {
+            avatarInfoMsg.textContent = '';
+            avatarErrorMsg.textContent = '';
+            const file = avatarInput.files[0];
+            if (!file) {
+                avatarErrorMsg.textContent = 'Выберите изображение для загрузки.';
+                return;
+            }
+            if (!file.type.startsWith('image/')) {
+                avatarErrorMsg.textContent = 'Файл должен быть изображением.';
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                // Сохраняем base64 на сервере
+                let currentUser = JSON.parse(localStorage.getItem('currentUser'));
+                fetch('https://rapartichka-site.onrender.com/users/' + encodeURIComponent(currentUser.username) + '/avatar', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ avatar: e.target.result })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        // Обновляем localStorage
+                        currentUser.avatar = e.target.result;
+                        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                        userAvatar.src = e.target.result;
+                        avatarInfoMsg.textContent = 'Аватар успешно обновлён!';
+                    } else {
+                        avatarErrorMsg.textContent = data.error || 'Ошибка обновления аватара';
+                    }
+                })
+                .catch(() => {
+                    avatarErrorMsg.textContent = 'Ошибка соединения с сервером';
+                });
+            };
+            reader.readAsDataURL(file);
+
+        };
+
+        // Проверка, был ли пользователь отключён администратором
+        function checkKicked() {
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            if (!user) return;
+            const onlineUsers = JSON.parse(localStorage.getItem('onlineUsers')) || [];
+            const isOnline = onlineUsers.some(u => u.username === user.username);
+            if (!isOnline) {
+                alert('Вы были отключены администратором!');
+                localStorage.removeItem('currentUser');
+                window.location.href = 'login.html';
+            }
+        }
+        setInterval(checkKicked, 5000);
+        checkKicked();
+
+        document.getElementById('changeAdminCredentialsBtn').onclick = function() {
+            const login = document.getElementById('adminNewLogin').value.trim();
+            const password = document.getElementById('adminNewPassword').value;
+            const infoMsg = document.getElementById('adminCredsInfoMsg');
+            const errorMsg = document.getElementById('adminCredsErrorMsg');
+            infoMsg.textContent = '';
+            errorMsg.textContent = '';
+
+            if (!login || !password) {
+                errorMsg.textContent = 'Введите новый логин и пароль администратора.';
+                return;
+            }
+
+            fetch('https://rapartichka-site.onrender.com/change-admin-credentials', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: login, password })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    infoMsg.textContent = 'Данные администратора успешно обновлены!';
+                    document.getElementById('adminNewLogin').value = '';
+                    document.getElementById('adminNewPassword').value = '';
+                } else {
+                    errorMsg.textContent = data.error || 'Ошибка обновления данных администратора';
+                }
+            })
+            .catch(() => {
+                errorMsg.textContent = 'Ошибка соединения с сервером';
+            });
+        };
+    </script>
+</body>
+</html>

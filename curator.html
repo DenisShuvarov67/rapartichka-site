@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Панель куратора</title>
+    <link rel="stylesheet" href="main.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body style="display:none;">
+    <!-- Кнопка-бургер (видна только на мобильных) -->
+    <button class="sidebar-toggle" id="sidebarToggleBtn" aria-label="Открыть меню">
+        <span>&#9776;</span>
+    </button>
+
+    <!-- Сайдбар -->
+    <nav class="sidebar" id="sidebar">
+        <a href="curator.html" class="sidebar-link active" title="Панель куратора">
+            <span class="sidebar-icon"><i class="fas fa-user-tie"></i></span>
+            <span class="sidebar-label">Панель куратора</span>
+        </a>
+        <a href="absences.html" class="sidebar-link" title="Явка студентов">
+            <span class="sidebar-icon"><i class="fas fa-users"></i></span>
+            <span class="sidebar-label">Явка студентов</span>
+        </a>
+        <a href="group-info.html" class="sidebar-link" title="Информация о группе">
+            <span class="sidebar-icon"><i class="fas fa-users"></i></span>
+            <span class="sidebar-label">О группе</span>
+        </a>
+        <a href="settings.html" class="sidebar-link" title="Настройки">
+            <span class="sidebar-icon"><i class="fas fa-cog"></i></span>
+            <span class="sidebar-label settings-label">Настройки</span>
+        </a>
+        <button class="logout-btn" id="logoutBtn">
+            <span class="sidebar-icon"><i class="fas fa-sign-out-alt"></i></span>
+            <span class="logout-label">Выйти</span>
+        </button>
+    </nav>
+
+    <div class="main-wrapper" id="mainWrapper">
+        <div class="container">
+            <div class="clock-box">
+                <div>
+                    <div id="date"></div>
+                    <div id="time"></div>
+                </div>
+            </div>
+            <h2>
+                <img id="mainUserAvatar" src="img/default-avatar.png" alt="Аватар" style="width:64px;height:78px;border-radius:50%;vertical-align:middle;margin-right:10px;object-fit:cover;">
+                Добро пожаловать, <span id="userName">Пользователь</span>!
+            </h2>
+            <div class="user-info">
+                <h3>Ваша информация</h3>
+                <p>Имя пользователя: <span id="userNameInfo">-</span></p>
+                <p>ФИО Куратора: <span id="userFullNameInfo">-</span></p>
+                <p>Роль: <span id="userRole">Не определена</span></p>
+                <div id="userInfo"></div>
+            </div>
+            <div class="quick-actions-block" style="margin-top: 20px;">
+                <h3>Быстрое действие</h3>
+                <button id="addTaskBtn" style="padding: 8px 18px; font-size: 15px; display:none;">Добавить задачу</button>
+            </div>
+            <div id="tasksBlock" style="margin-top: 30px; display:none;">
+                <h3>Список задач</h3>
+                <ul id="tasksList"></ul>
+                <button id="addTaskBtn2" style="padding: 8px 18px; font-size: 15px; display:none; margin-top: 16px;">Добавить задачу</button>
+            </div>
+            <!-- Календарь посещаемости -->
+            <div id="attendanceCalendarBlock" style="margin-top:30px;">
+                <h3>Календарь посещаемости</h3>
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+                    <button id="prevMonthBtn" style="font-size:18px;padding:2px 10px;">&#8592;</button>
+                    <span id="calendarMonthLabel" style="font-weight:600;"></span>
+                    <button id="nextMonthBtn" style="font-size:18px;padding:2px 10px;">&#8594;</button>
+                </div>
+                <div id="attendanceCalendar"></div>
+                <div style="margin-top:8px;font-size:13px;">
+                    <span style="display:inline-block;width:16px;height:16px;background:#36d46c;border-radius:3px;margin-right:4px;vertical-align:middle;"></span> Присутствовал
+                    <span style="display:inline-block;width:16px;height:16px;background:#e74c3c;border-radius:3px;margin:0 8px 0 16px;vertical-align:middle;"></span> Прогул
+                    <span style="display:inline-block;width:16px;height:16px;background:#f1c40f;border-radius:3px;margin:0 8px 0 0;vertical-align:middle;"></span> Болел
+                    <span style="display:inline-block;width:16px;height:16px;background:#3498db;border-radius:3px;margin:0 8px 0 0;vertical-align:middle;"></span> Опоздал
+                </div>
+            </div>
+            <!-- Сводка по посещаемости -->
+            <div id="attendanceSummaryBlock" style="margin-top:30px; display:none;">
+                <h3>Сводка по посещаемости</h3>
+                <p id="attendanceSummaryText">Загрузка...</p>
+                <button id="showAttendanceStatsBtn" style="padding:8px 18px; font-size:15px;">Подробнее о процентах посещаемости</button>
+            </div>
+            <div class="info-flex-block" style="display:flex; gap:32px; align-items:flex-start; margin-top:30px;">
+                <!-- Левая колонка: группа -->
+                <div style="flex:1;">
+                    <h3>Список группы и обязанности</h3>
+                    <button id="addMemberBtn" style="margin-bottom:12px;padding:8px 18px;font-size:15px;">Добавить участника</button>
+                    <table border="1" cellpadding="6" style="width:100%;border-collapse:collapse;">
+    <thead>
+        <tr>
+            <th>ФИО</th>
+            <th>Обязанность</th>
+        </tr>
+    </thead>
+    <tbody id="groupListTable">
+        <!-- Данные будут добавлены скриптом -->
+    </tbody>
+</table>
+                </div>
+                <!-- Правая колонка: задачи -->
+                <div style="flex:1;">
+                    <h3>Список задач</h3>
+                    <button id="addTaskBtn" style="margin-bottom:12px;padding:8px 18px;font-size:15px;">Добавить задачу</button>
+                    <ul id="tasksList"></ul>
+                </div>
+            </div>
+            <!-- Модальное окно для добавления участника -->
+            <div id="addMemberModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:1000; align-items:center; justify-content:center;">
+                <div style="background:#fff; padding:24px; border-radius:8px; min-width:300px;">
+                    <h3>Добавить участника</h3>
+                    <input id="memberFullName" type="text" placeholder="ФИО" style="width:100%;padding:8px;margin-bottom:8px;">
+                    <input id="memberDuty" type="text" placeholder="Обязанность" style="width:100%;padding:8px;margin-bottom:8px;">
+                    <div style="margin-top:12px; text-align:right;">
+                        <button id="saveMemberBtn" style="padding:6px 16px;">Сохранить</button>
+                        <button id="cancelMemberBtn" style="padding:6px 16px;">Отмена</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Модальное окно для задач -->
+    <div id="taskModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:1000; align-items:center; justify-content:center;">
+        <div style="background:#fff; padding:24px; border-radius:8px; min-width:300px;">
+            <h3>Добавить задачу</h3>
+            <input id="taskInput" type="text" placeholder="Введите задачу" style="width:100%;padding:8px;">
+            <div style="margin-top:12px; text-align:right;">
+                <button id="saveTaskBtn" style="padding:6px 16px;">Сохранить</button>
+                <button id="cancelTaskBtn" style="padding:6px 16px;">Отмена</button>
+            </div>
+        </div>
+    </div>
+    <!-- Модальное окно для редактирования обязанности -->
+    <div id="editDutyModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:1000; align-items:center; justify-content:center;">
+        <div style="background:#fff; padding:24px; border-radius:8px; min-width:300px;">
+            <h3>Изменить обязанность</h3>
+            <input id="editDutyInput" type="text" placeholder="Новая обязанность" style="width:100%;padding:8px;margin-bottom:8px;">
+            <div style="margin-top:12px; text-align:right;">
+                <button id="saveEditDutyBtn" style="padding:6px 16px;">Сохранить</button>
+                <button id="cancelEditDutyBtn" style="padding:6px 16px;">Отмена</button>
+            </div>
+        </div>
+    </div>
+    <script>
+let groupMembers = [];
+let editMemberIdx = null;
+
+// --- Защита: только для куратора ---
+const userStr = localStorage.getItem('currentUser');
+if (!userStr) {
+    window.location.href = 'login.html';
+} else {
+    const user = JSON.parse(userStr);
+    if (
+        !user ||
+        !(
+            (user.role && user.role.toLowerCase() === 'curator') ||
+            (user.roleName && user.roleName.toLowerCase() === 'куратор')
+        )
+    ) {
+        window.location.href = 'index.html';
+    } else {
+        document.body.style.display = '';
+
+        // Заполнение информации о пользователе
+        document.getElementById('userName').textContent = user.fullName || user.username || 'Пользователь';
+        document.getElementById('userNameInfo').textContent = user.username || '-';
+        document.getElementById('userFullNameInfo').textContent = user.fullName || '-';
+        document.getElementById('userRole').textContent = user.roleName || user.role || 'Не определена';
+        if (user.avatarUrl) {
+            document.getElementById('mainUserAvatar').src = user.avatarUrl;
+        }
+    }
+}
+
+// --- Работа с участниками группы ---
+async function fetchGroupMembers() {
+    try {
+        const res = await fetch('https://rapartichka-site.onrender.com/group-members');
+        if (res.ok) {
+            groupMembers = await res.json();
+            renderGroupList();
+        } else {
+            groupMembers = [];
+            renderGroupList();
+        }
+    } catch (e) {
+        groupMembers = [];
+        renderGroupList();
+    }
+}
+
+async function addGroupMember(member) {
+    try {
+        const res = await fetch('https://rapartichka-site.onrender.com/group-members', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(member)
+        });
+        if (res.ok) {
+            await fetchGroupMembers();
+        } else {
+            alert('Ошибка при добавлении участника');
+        }
+    } catch (e) {
+        alert('Ошибка соединения с сервером');
+    }
+}
+
+async function deleteGroupMember(idx) {
+    const member = groupMembers[idx];
+    try {
+        const res = await fetch('https://rapartichka-site.onrender.com/group-members', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: member.id })
+        });
+        if (res.ok) {
+            await fetchGroupMembers();
+        } else {
+            alert('Ошибка при удалении');
+        }
+    } catch (e) {
+        alert('Ошибка соединения с сервером');
+    }
+}
+
+async function updateGroupMember(idx, member) {
+    const old = groupMembers[idx];
+    try {
+        const res = await fetch('https://rapartichka-site.onrender.com/group-members', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: old.id, fullName: member.fullName, duty: member.duty })
+        });
+        if (res.ok) {
+            await fetchGroupMembers();
+        } else {
+            alert('Ошибка при обновлении');
+        }
+    } catch (e) {
+        alert('Ошибка соединения с сервером');
+    }
+}
+
+function renderGroupList() {
+    const tbody = document.getElementById('groupListTable');
+    tbody.innerHTML = '';
+    groupMembers.forEach((member, idx) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${member.fullName}</td>
+            <td>
+                ${member.duty}
+                <button class="edit-duty-btn" data-idx="${idx}" style="margin-left:8px;font-size:13px;">✏️</button>
+                <button class="delete-member-btn" data-idx="${idx}" style="margin-left:4px;font-size:13px;color:#e74c3c;">🗑️</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    tbody.querySelectorAll('.edit-duty-btn').forEach(btn => {
+        btn.onclick = function() {
+            const idx = +btn.dataset.idx;
+            openEditDutyModal(idx);
+        };
+    });
+    tbody.querySelectorAll('.delete-member-btn').forEach(btn => {
+        btn.onclick = async function() {
+            const idx = +btn.dataset.idx;
+            if (confirm('Удалить участника?')) {
+                await deleteGroupMember(idx);
+            }
+        };
+    });
+}
+
+document.getElementById('addMemberBtn').onclick = function() {
+    document.getElementById('addMemberModal').style.display = 'flex';
+    document.getElementById('memberFullName').value = '';
+    document.getElementById('memberDuty').value = '';
+    document.getElementById('memberFullName').focus();
+    editMemberIdx = null;
+};
+
+document.getElementById('cancelMemberBtn').onclick = function() {
+    document.getElementById('addMemberModal').style.display = 'none';
+    editMemberIdx = null;
+};
+
+document.getElementById('saveMemberBtn').onclick = async function() {
+    const fullName = document.getElementById('memberFullName').value.trim();
+    const duty = document.getElementById('memberDuty').value.trim();
+    if (!fullName || !duty) return;
+    if (editMemberIdx !== null) {
+        await updateGroupMember(editMemberIdx, { fullName, duty });
+        editMemberIdx = null;
+    } else {
+        await addGroupMember({ fullName, duty });
+    }
+    document.getElementById('addMemberModal').style.display = 'none';
+};
+
+function openEditDutyModal(idx) {
+    editMemberIdx = idx;
+    document.getElementById('editDutyInput').value = groupMembers[idx].duty;
+    document.getElementById('editDutyModal').style.display = 'flex';
+}
+
+document.getElementById('saveEditDutyBtn').onclick = async function() {
+    if (editMemberIdx === null) return;
+    const newDuty = document.getElementById('editDutyInput').value.trim();
+    if (!newDuty) return;
+    await updateGroupMember(editMemberIdx, {
+        fullName: groupMembers[editMemberIdx].fullName,
+        duty: newDuty
+    });
+    document.getElementById('editDutyModal').style.display = 'none';
+    editMemberIdx = null;
+};
+
+document.getElementById('cancelEditDutyBtn').onclick = function() {
+    document.getElementById('editDutyModal').style.display = 'none';
+    editMemberIdx = null;
+};
+
+document.addEventListener('DOMContentLoaded', fetchGroupMembers);
+
+// --- To-Do задачи ---
+function hasTaskAccess(user) {
+    if (!user) return false;
+    const allowedRoles = [
+        'headman', 'deputy_headman', 'curator', 'admin', 'администратор',
+        'староста', 'зам старосты', 'куратор', 'администратор'
+    ];
+    return allowedRoles.includes((user.roleName || '').toLowerCase()) ||
+        allowedRoles.includes((user.role || '').toLowerCase());
+}
+
+function renderTasks(tasks, user) {
+    const tasksList = document.getElementById('tasksList');
+    tasksList.innerHTML = '';
+    const isAdmin = (user.roleName && user.roleName.toLowerCase().includes('админ')) ||
+        (user.role && user.role.toLowerCase().includes('админ'));
+    tasks
+        .filter(t => isAdmin || t.author === user.username)
+        .forEach((task) => {
+            const li = document.createElement('li');
+            li.textContent = `${task.text} (${task.authorDisplay || task.author})`;
+            if (isAdmin || task.author === user.username) {
+                const delBtn = document.createElement('button');
+                delBtn.textContent = 'Удалить';
+                delBtn.style.marginLeft = '12px';
+                delBtn.style.padding = '2px 10px';
+                delBtn.style.fontSize = '12px';
+                delBtn.onclick = function() {
+                    const tasks = getTasks();
+                    const delIdx = tasks.findIndex(t => t.created === task.created && t.author === task.author);
+                    if (delIdx !== -1) {
+                        tasks.splice(delIdx, 1);
+                        saveTasks(tasks);
+                        renderTasks(tasks, user);
+                    }
+                };
+                li.appendChild(delBtn);
+            }
+            tasksList.appendChild(li);
+        });
+}
+
+function getTasks() {
+    return JSON.parse(localStorage.getItem('tasksList')) || [];
+}
+
+function saveTasks(tasks) {
+    localStorage.setItem('tasksList', JSON.stringify(tasks));
+}
+
+if (hasTaskAccess(JSON.parse(userStr))) {
+    document.getElementById('tasksBlock').style.display = '';
+    renderTasks(getTasks(), JSON.parse(userStr));
+    document.getElementById('addTaskBtn').style.display = '';
+}
+
+document.getElementById('addTaskBtn').onclick = function() {
+    document.getElementById('taskModal').style.display = 'flex';
+    document.getElementById('taskInput').value = '';
+    document.getElementById('taskInput').focus();
+};
+document.getElementById('cancelTaskBtn').onclick = function() {
+    document.getElementById('taskModal').style.display = 'none';
+};
+document.getElementById('saveTaskBtn').onclick = function() {
+    const text = document.getElementById('taskInput').value.trim();
+    if (!text) return;
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    const tasks = getTasks();
+    tasks.push({
+        text,
+        author: user.username,
+        authorDisplay: user.fullName || user.username,
+        created: Date.now()
+    });
+    saveTasks(tasks);
+    renderTasks(tasks, user);
+    document.getElementById('taskModal').style.display = 'none';
+};
+
+// Кнопка-бургер для мобильного меню
+const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+const sidebar = document.getElementById('sidebar');
+sidebarToggleBtn.onclick = function(e) {
+    e.stopPropagation();
+    sidebar.classList.toggle('open');
+};
+document.addEventListener('click', function(e) {
+    if (
+        sidebar.classList.contains('open') &&
+        !sidebar.contains(e.target) &&
+        e.target !== sidebarToggleBtn
+    ) {
+        sidebar.classList.remove('open');
+    }
+});
+
+document.getElementById('logoutBtn').onclick = function() {
+    localStorage.removeItem('currentUser');
+    window.location.href = 'login.html';
+};
+</script>
+</body>
+</html>

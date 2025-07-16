@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход</title>
+    <link rel="stylesheet" href="main.css"> <!-- Предполагаем, что у вас есть основной CSS файл -->
+    <style>
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0; top: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: #fff;
+            color: #111; /* Чёрный текст */
+            padding: 24px 32px;
+            border-radius: 8px;
+            text-align: center;
+            min-width: 300px;
+        }
+        #modalMessage {
+            color: #111; /* Чёрный текст для сообщения */
+        }
+        .modal-content button {
+            margin: 8px 12px 0 12px;
+            padding: 6px 18px;
+            font-size: 15px;
+        }
+        .loader {
+            display: inline-block;
+            width: 22px;
+            height: 22px;
+            border: 3px solid #ccc;
+            border-top: 3px solid #2980ef;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg);}
+            100% { transform: rotate(360deg);}
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h3>Вход</h3>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="loginUsername">Имя пользователя:</label>
+                <input type="text" id="loginUsername" name="username" placeholder="Логин" required>
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">Пароль:</label>
+                <input type="password" id="loginPassword" name="password" placeholder="Пароль" required>
+            </div>
+            <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+                <input type="checkbox" id="rememberMe">
+                <label for="rememberMe" style="margin:0;">Запомнить меня</label>
+            </div>
+            <!-- Выбор роли -->
+            <div class="form-group">
+                <label for="roleSelect">Роль:</label>
+                <select id="roleSelect" name="role" required>
+                    <option value="student">Студент</option>
+                    <option value="curator">Куратор</option>
+                    <option value="parent">Родитель</option>
+                    <option value="headman">Староста</option>
+                    <option value="deputy_headman">Зам старосты</option>
+                    <option value="admin">Администратор</option>
+                </select>
+            </div>
+            <button type="submit" id="loginBtn">Войти</button>
+            <div id="loader" style="display:none;margin-top:10px;">
+                <span class="loader"></span> Вход...
+            </div>
+        </form>
+        <div style="margin-top:18px; text-align:center;">
+            <button type="button" id="adminLoginBtn">Войти как администратор</button>
+        </div>
+        <div id="loginResult"></div>
+        <p>Нет аккаунта? <a href="register.html">Зарегистрироваться</a></p>
+    </div>
+
+    <div id="customModal" class="modal" style="display:none;">
+        <div class="modal-content">
+
+            <p id="modalMessage"></p>
+
+            <div id="loginHistory"></div>
+            
+            <button id="modalOk">Войти</button>
+            <button id="modalCancel">Отмена</button>
+        </div>
+    </div>
+
+    <script>
+const loginUsername = document.getElementById('loginUsername');
+const loginPassword = document.getElementById('loginPassword');
+const loginResult = document.getElementById('loginResult');
+const customModal = document.getElementById('customModal');
+const modalMessage = document.getElementById('modalMessage');
+const modalOk = document.getElementById('modalOk');
+const modalCancel = document.getElementById('modalCancel');
+const rememberMe = document.getElementById('rememberMe');
+const loader = document.getElementById('loader');
+const loginBtn = document.getElementById('loginBtn');
+const adminLoginBtn = document.getElementById('adminLoginBtn');
+
+// Восстановление логина, если был сохранён
+if (localStorage.getItem('rememberedLogin')) {
+    loginUsername.value = localStorage.getItem('rememberedLogin');
+    rememberMe.checked = true;
+}
+
+function formatLoginHistory(logins) {
+    if (!logins || !logins.length) return '';
+    return '<br><b>Последние входы:</b><br>' + logins.map(l => {
+        const date = new Date(l.time);
+        return date.toLocaleString() + ' — ' + l.ip;
+    }).join('<br>');
+}
+
+function showModal(message, logins) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('customModal');
+        const modalMessage = document.getElementById('modalMessage');
+        const loginHistory = document.getElementById('loginHistory');
+        const okBtn = document.getElementById('modalOk');
+        const cancelBtn = document.getElementById('modalCancel');
+
+        // Вот сюда:
+        console.log('История входов:', logins);
+
+        modalMessage.innerHTML = message;
+        // Уберите или закомментируйте следующую строку:
+        // loginHistory.innerHTML = logins && logins.length ? formatLoginHistory(logins) : '<br><i>История входов пуста</i>';
+        loginHistory.innerHTML = ''; // История входа не показывается
+        modal.style.display = 'flex';
+
+        function cleanup(result) {
+            modal.style.display = 'none';
+            okBtn.removeEventListener('click', okHandler);
+            cancelBtn.removeEventListener('click', cancelHandler);
+            resolve(result);
+        }
+        function okHandler() { cleanup(true); }
+        function cancelHandler() { cleanup(false); }
+
+        okBtn.addEventListener('click', okHandler);
+        cancelBtn.addEventListener('click', cancelHandler);
+    });
+}
+
+document.getElementById('loginForm').onsubmit = async function(e) {
+    e.preventDefault();
+    const username = loginUsername.value.trim();
+    const password = loginPassword.value;
+    const selectedRole = document.getElementById('roleSelect').value; // Получаем выбранную роль
+
+    // Анимация загрузки
+    loader.style.display = 'block';
+    loginBtn.disabled = true;
+    adminLoginBtn.disabled = true;
+
+    async function tryLogin(forceFlag = false) {
+        const res = await fetch('/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                username,
+                password,
+                role: selectedRole,
+                force: forceFlag // <-- обязательно!
+            })
+        });
+        const data = await res.json();
+        if (data.warning) {
+            const confirmed = await showModal(data.warning, data.lastLogins);
+            if (confirmed) {
+                return tryLogin(true);
+            } else {
+                loginResult.textContent = "Вход отменён.";
+            }
+        } else if (data.username) {
+            // --- Запомнить логин ---
+            if (rememberMe.checked) {
+                localStorage.setItem('rememberedLogin', username);
+            } else {
+                localStorage.removeItem('rememberedLogin');
+            }
+            // --- ДОБАВЛЕНО: сохраняем кастомный аватар, если он был ---
+            let users = JSON.parse(localStorage.getItem('users')) || [];
+            let localUser = users.find(u => u.username === data.username);
+            if (localUser && localUser.avatar) {
+                data.avatar = localUser.avatar;
+            }
+            localStorage.setItem('currentUser', JSON.stringify(data));
+            // После успешного входа:
+            if (data.role === 'curator' || (data.roleName && data.roleName.toLowerCase() === 'куратор')) {
+                window.location.href = 'curator.html';
+            } else if (data.role === 'parent' || (data.roleName && data.roleName.toLowerCase() === 'родитель')) {
+                window.location.href = 'parent.html';
+            } else {
+                window.location.href = 'index.html';
+            }
+        } else {
+            loginResult.textContent = data.error || 'Ошибка входа';
+        }
+        loader.style.display = 'none';
+        loginBtn.disabled = false;
+        adminLoginBtn.disabled = false;
+    }
+
+    tryLogin();
+};
+
+// Пример проверки блокировки при входе
+function loginUser(username, password) {
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+    const user = users.find(u => u.username === username);
+    if (user && user.blockedUntil && Date.now() < user.blockedUntil) {
+        alert(`Пользователь заблокирован до ${new Date(user.blockedUntil).toLocaleString()}`);
+        return;
+    }
+    // ...дальше обычная логика входа...
+}
+
+// Кнопка "Войти как администратор"
+adminLoginBtn.onclick = function() {
+    window.location.href = 'admin.html';
+};
+</script>
+</body>
+</html>

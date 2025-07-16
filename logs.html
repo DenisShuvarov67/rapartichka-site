@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Логи действий</title>
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<nav class="topbar" id="topbar">
+        <div class="topbar-links" id="topbarLinks">
+            <a href="index.html" class="sidebar-link" title="Главная">
+                <span class="sidebar-icon"><i class="fas fa-home"></i></span>
+                <span class="sidebar-label">Главная</span>
+            </a>
+            <a href="attendance.html" class="sidebar-link" title="Отметить явку">
+                <span class="sidebar-icon"><i class="fas fa-user-check"></i></span>
+                <span class="sidebar-label">Явка</span>
+            </a>
+            <a href="absences.html" class="sidebar-link" title="Явка за месяц">
+                <span class="sidebar-icon"><i class="fas fa-chart-bar"></i></span>
+                <span class="sidebar-label">Явка за месяц</span>
+            </a>
+            <a href="students.html" class="sidebar-link" title="Панель старосты и его зама">
+                <span class="sidebar-icon"><i class="fas fa-user-graduate"></i></span>
+                <span class="sidebar-label">Панель старосты и его зама</span>
+            </a>
+            <a id="adminLink" href="admin.html" class="sidebar-link" style="display:none;">
+                <span class="sidebar-icon"><i class="fas fa-user-shield"></i></span>
+                <span class="sidebar-label">Админ<br>панель</span>
+            </a>
+            <a href="settings.html" class="sidebar-link" title="Настройки">
+                <span class="sidebar-icon"><i class="fas fa-cog"></i></span>
+                <span class="sidebar-label settings-label">Настройки</span>
+            </a>
+            <button class="logout-btn" onclick="window.location.href='login.html'">
+                <span class="sidebar-icon"><i class="fas fa-sign-out-alt"></i></span>
+                <span class="logout-label">Выйти</span>
+            </button>
+        </div>
+    </nav>
+<body>
+    <h2>Логи действий</h2>
+    <div id="logsContainer"></div>
+    <script>
+        // Пример: логи хранятся в localStorage под ключом "actionLogs"
+        function renderLogs() {
+            const logs = JSON.parse(localStorage.getItem('actionLogs')) || [];
+            const container = document.getElementById('logsContainer');
+            if (logs.length === 0) {
+                container.innerHTML = '<i>Логи отсутствуют.</i>';
+                return;
+            }
+            container.innerHTML = logs.map(log =>
+                `<div style="border-bottom:1px solid #ccc;padding:5px 0;">
+                    <b>${log.time}</b> — <b>${log.user}</b>: ${log.action}
+                </div>`
+            ).join('');
+        }
+        renderLogs();
+    </script>
+</body>
+</html>

@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Посещаемость студента</title>
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 220px;
+            height: 100%;
+            background: #23272f;
+            color: #fff;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.08);
+            transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+            z-index: 1000;
+            overflow-y: auto;
+            transform: translateX(-100%);
+        }
+        .sidebar.open {
+            transform: translateX(0);
+        }
+        .sidebar-toggle {
+            position: fixed;
+            top: 18px;
+            left: 18px;
+            z-index: 2001;
+            background: #23272f;
+            color: #36d46c;
+            border: none;
+            font-size: 28px;
+            border-radius: 6px;
+            padding: 4px 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .sidebar-toggle:hover {
+            background: #2fa85a;
+            color: #fff;
+        }
+        body.sidebar-open {
+            margin-left: 220px;
+            transition: margin-left 0.3s;
+        }
+        @media (max-width: 900px) {
+            body.sidebar-open {
+                margin-left: 0;
+            }
+            .sidebar {
+                width: 90vw;
+                left: 0;
+                transform: translateX(-100%);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="sidebar-toggle" id="sidebarToggleBtn" aria-label="Открыть меню">
+        <span>&#9776;</span>
+    </button>
+    <!-- Сайдбар -->
+    <nav class="sidebar" id="sidebar">
+        <a href="index.html" class="sidebar-link active" title="Главная">
+            <span class="sidebar-icon"><i class="fas fa-home"></i></span>
+            <span class="sidebar-label">Главная</span>
+        </a>
+        <a href="attendance.html" class="sidebar-link" title="Отметить явку">
+            <span class="sidebar-icon"><i class="fas fa-user-check"></i></span>
+            <span class="sidebar-label">Явка</span>
+        </a>
+        <a href="absences.html" class="sidebar-link" title="Явка за месяц">
+            <span class="sidebar-icon"><i class="fas fa-chart-bar"></i></span>
+            <span class="sidebar-label">Явка за месяц</span>
+        </a>
+        <a href="students.html" class="sidebar-link" title="Панель старосты и его зама">
+            <span class="sidebar-icon"><i class="fas fa-user-graduate"></i></span>
+            <span class="sidebar-label">Панель старосты и его зама</span>
+        </a>
+        <a href="https://t.me/+rkj_U8Ou3uYyMzNi" class="sidebar-link" title="Чат в Telegram" target="_blank" rel="noopener">
+            <span class="sidebar-icon"><i class="fab fa-telegram-plane"></i></span>
+            <span class="sidebar-label">Telegram чат</span>
+        </a>
+        <a id="adminLink" href="admin.html" class="sidebar-link">
+            <span class="sidebar-icon"><i class="fas fa-user-shield"></i></span>
+            <span class="sidebar-label">Админ<br>панель</span>
+        </a>
+        <a href="settings.html" class="sidebar-link" title="Настройки">
+            <span class="sidebar-icon"><i class="fas fa-cog"></i></span>
+            <span class="sidebar-label settings-label">Настройки</span>
+        </a>
+        <button class="logout-btn" id="logoutBtn">
+            <span class="sidebar-icon"><i class="fas fa-sign-out-alt"></i></span>
+            <span class="logout-label">Выйти</span>
+        </button>
+    </nav>
+
+    <div class="container">
+        <h2>Посещаемость студента</h2>
+        <form id="attendanceForm">
+            <label>Дата: <input type="date" name="date" required></label><br>
+            <label>Пара:
+                <select name="lesson" required>
+                    <option value="1">1 пара</option>
+                    <option value="2">2 пара</option>
+                    <option value="3">3 пара</option>
+                    <option value="4">4 пара</option>
+                    <option value="5">5 пара</option>
+                </select>
+            </label><br>
+            <label>Предмет:
+                <select name="subject" id="subjectSelect" required></select>
+            </label><br>
+            <label>ФИО студента:
+                <select name="student" id="studentSelect" required></select>
+            </label>
+            <br>
+            <label>Статус:
+                <select name="status" required>
+                    <option value="Присутствовал">Присутствовал</option>
+                    <option value="Отсутствовал">Отсутствовал</option>
+                    <option value="Больничный">Больничный</option>
+                    <option value="Опоздал">Опоздал</option>
+                    <option value="Уважительная причина">Уважительная причина</option>
+                </select>
+            </label><br>
+            <label>Комментарий: <input type="text" name="comment"></label><br>
+            <button type="submit">Отметить явку</button>
+        </form>
+        <div id="message"></div>
+        <div id="attendanceTable"></div>
+    </div>
+
+    <script>
+    // Проверка доступа
+    document.addEventListener('DOMContentLoaded', function() {
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        const allowedRoles = ['староста', 'зам старосты', 'администратор', 'куратор'];
+        const userRole = (user?.roleName || user?.role || '').toLowerCase();
+        if (!user || !allowedRoles.includes(userRole)) {
+            document.body.innerHTML = '<div style="color:red;text-align:center;margin-top:50px;font-size:1.5em;">У вас нет доступа к этому разделу<p><a href="index.html">Вернуться на главную</a></p></div>';
+        }
+    });
+
+    // Получение студентов с сервера
+    async function fetchStudents() {
+        const res = await fetch('/students');
+        return await res.json();
+    }
+
+    // Получение предметов с сервера
+    async function fetchSubjects() {
+        const res = await fetch('/subjects');
+        return await res.json();
+    }
+
+    // Заполнение выпадающих списков
+    async function fillSelects() {
+        const students = await fetchStudents();
+        const subjects = await fetchSubjects();
+
+        const studentSelect = document.getElementById('studentSelect');
+        const subjectSelect = document.getElementById('subjectSelect');
+
+        studentSelect.innerHTML = '';
+        students.forEach(student => {
+            const option = document.createElement('option');
+            option.value = student.id;
+            option.textContent = student.name;
+            studentSelect.appendChild(option);
+        });
+
+        subjectSelect.innerHTML = '';
+        subjects.forEach(subject => {
+            const option = document.createElement('option');
+            option.value = subject.id;
+            option.textContent = subject.name;
+            subjectSelect.appendChild(option);
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', fillSelects);
+
+    // Отправка формы явки
+    document.getElementById('attendanceForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const form = e.target;
+        const data = Object.fromEntries(new FormData(form));
+        try {
+            const res = await fetch('/google-attendance', {
+                method: 'POST',
+                body: JSON.stringify(data),
+                headers: { 'Content-Type': 'application/json' }
+            });
+            if (res.ok) {
+                window.location.href = 'absences.html';
+            } else {
+                document.getElementById('message').textContent = 'Ошибка при отправке!';
+            }
+        } catch (error) {
+            document.getElementById('message').textContent = 'Ошибка соединения с сервером!';
+        }
+    });
+
+    // Загрузка таблицы посещаемости
+    async function loadAttendanceTable() {
+  const res = await fetch('/google-attendance');
+  const text = await res.text();
+  let allData;
+  try {
+    allData = JSON.parse(text);
+  } catch (e) {
+    document.getElementById('attendanceTable').innerHTML = '<b style="color:red">Ошибка загрузки данных</b>';
+    return;
+  }
+  let html = '';
+  for (const [sheetName, data] of Object.entries(allData)) {
+    if (!Array.isArray(data) || data.length === 0) continue;
+    html += `<h3>${sheetName}</h3>`;
+    html += '<table border="1"><tr>';
+    // Заголовки из первой строки
+    data[0].forEach(col => html += `<th>${col}</th>`);
+    html += '</tr>';
+    // Данные
+    data.slice(1).forEach(row => {
+      html += '<tr>';
+      row.forEach(cell => html += `<td>${cell ?? ''}</td>`);
+      html += '</tr>';
+    });
+    html += '</table><br>';
+  }
+  document.getElementById('attendanceTable').innerHTML = html || '<b>Нет данных</b>';
+}
+    document.addEventListener('DOMContentLoaded', loadAttendanceTable);
+
+    // Открытие/закрытие сайдбара
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('sidebarToggleBtn');
+    toggleBtn.onclick = function(e) {
+        e.stopPropagation();
+        sidebar.classList.toggle('open');
+        document.body.classList.toggle('sidebar-open');
+    };
+    // Закрывать сайдбар при клике вне его
+    document.addEventListener('click', function(e) {
+        if (
+            sidebar.classList.contains('open') &&
+            !sidebar.contains(e.target) &&
+            e.target !== toggleBtn
+        ) {
+            sidebar.classList.remove('open');
+            document.body.classList.remove('sidebar-open');
+        }
+    });
+    </script>
+</body>
+</html>

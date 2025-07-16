@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Панель родителя</title>
+    <link rel="stylesheet" href="main.css">
+</head>
+<body>
+    <h2>Панель родителя</h2>
+    <div id="parentContent">Здесь будет информация для родителей.</div>
+    <script>
+    // Проверка роли
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    if (!user || (user.role !== 'parent' && user.roleName?.toLowerCase() !== 'родитель')) {
+        window.location.href = 'login.html';
+    }
+    </script>
+</body>
+</html>

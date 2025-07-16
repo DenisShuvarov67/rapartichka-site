@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Кто в сети</title>
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <nav class="topbar" id="topbar">
+        <div class="topbar-links" id="topbarLinks">
+            <a href="index.html" class="sidebar-link" title="Главная">
+                <span class="sidebar-icon"><i class="fas fa-home"></i></span>
+                <span class="sidebar-label">Главная</span>
+            </a>
+            <a href="attendance.html" class="sidebar-link" title="Отметить явку">
+                <span class="sidebar-icon"><i class="fas fa-user-check"></i></span>
+                <span class="sidebar-label">Явка</span>
+            </a>
+            <a href="absences.html" class="sidebar-link" title="Явка за месяц">
+                <span class="sidebar-icon"><i class="fas fa-chart-bar"></i></span>
+                <span class="sidebar-label">Явка за месяц</span>
+            </a>
+            <a href="students.html" class="sidebar-link" title="Панель старосты и его зама">
+                <span class="sidebar-icon"><i class="fas fa-user-graduate"></i></span>
+                <span class="sidebar-label">Панель старосты и его зама</span>
+            </a>
+            <a id="adminLink" href="admin.html" class="sidebar-link" style="display:none;">
+                <span class="sidebar-icon"><i class="fas fa-user-shield"></i></span>
+                <span class="sidebar-label">Админ<br>панель</span>
+            </a>
+            <a href="settings.html" class="sidebar-link" title="Настройки">
+                <span class="sidebar-icon"><i class="fas fa-cog"></i></span>
+                <span class="sidebar-label settings-label">Настройки</span>
+            </a>
+            <button class="logout-btn" onclick="window.location.href='login.html'">
+                <span class="sidebar-icon"><i class="fas fa-sign-out-alt"></i></span>
+                <span class="logout-label">Выйти</span>
+            </button>
+        </div>
+    </nav>
+    <h2>Пользователи онлайн</h2>
+    <div id="onlineUsersList"></div>
+    <script>
+        // Проверка авторизации
+        const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+        if (!currentUser) {
+            window.location.href = 'login.html';
+        } else {
+            // Добавляем/обновляем пользователя в onlineUsers
+            function updateOnlineStatus() {
+                let onlineUsers = JSON.parse(localStorage.getItem('onlineUsers')) || [];
+                const now = Date.now();
+                const idx = onlineUsers.findIndex(u => u.username === currentUser.username);
+                if (idx !== -1) {
+                    onlineUsers[idx].lastActive = now;
+                } else {
+                    onlineUsers.push({ username: currentUser.username, lastActive: now });
+                }
+                localStorage.setItem('onlineUsers', JSON.stringify(onlineUsers));
+            }
+            updateOnlineStatus();
+            setInterval(updateOnlineStatus, 30000); // обновлять статус каждые 30 секунд
+        }
+
+        // Получаем список пользователей онлайн из localStorage
+        function renderOnlineUsers() {
+            const onlineUsers = JSON.parse(localStorage.getItem('onlineUsers')) || [];
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+            const now = Date.now();
+            const TIMEOUT = 10 * 60 * 1000; // 10 минут
+
+            const list = onlineUsers
+                .filter(u => now - u.lastActive < TIMEOUT)
+                .map(u => {
+                    const user = users.find(us => us.username === u.username);
+                    return `
+                        <div style="border:1px solid #ccc; margin:7px 0; padding:7px;">
+                            <b>${user ? (user.fullName || user.username) : u.username}</b>
+                            <span style="color:gray;">(${u.username})</span>
+                            <button onclick="kickUser('${u.username}')">Отключить</button>
+                            <br>
+                            <small>Последняя активность: ${new Date(u.lastActive).toLocaleString()}</small>
+                        </div>
+                    `;
+                }).join('');
+            document.getElementById('onlineUsersList').innerHTML = list || '<i>Нет пользователей онлайн.</i>';
+        }
+
+        // Отключить пользователя (удалить из onlineUsers)
+        function kickUser(username) {
+            let onlineUsers = JSON.parse(localStorage.getItem('onlineUsers')) || [];
+            onlineUsers = onlineUsers.filter(u => u.username !== username);
+            localStorage.setItem('onlineUsers', JSON.stringify(onlineUsers));
+            renderOnlineUsers();
+        }
+
+        // Обновлять список каждые 10 секунд
+        setInterval(renderOnlineUsers, 10000);
+        renderOnlineUsers();
+    </script>
+</body>
+</html>

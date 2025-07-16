@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ-панель</title>
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+</head>
+<body>
+    <!-- Модальное окно для входа администратора -->
+    <div id="adminLoginModal" style="display:flex;position:fixed;z-index:9999;left:0;top:0;width:100vw;height:100vh;align-items:center;justify-content:center;background:#0008;">
+        <div style="background:#fff;padding:32px 28px;border-radius:12px;min-width:280px;box-shadow:0 8px 32px #0003;text-align:center;">
+            <h3>Вход в админ-панель</h3>
+            <input id="adminLoginInput" type="text" placeholder="Имя администратора" style="margin-bottom:10px;width:90%;padding:7px;"><br>
+            <input id="adminPasswordInput" type="password" placeholder="Пароль администратора" style="margin-bottom:10px;width:90%;padding:7px;"><br>
+            <div style="margin-bottom:10px;text-align:left;">
+                <input type="checkbox" id="adminRememberMe">
+                <label for="adminRememberMe" style="font-size:14px;">Запомнить меня</label>
+            </div>
+            <button id="adminLoginBtn" style="padding:8px 22px;">Войти</button>
+            <br>
+            <button id="backToLoginBtn" style="padding:8px 22px; margin-top:16px;">Вернуться к входу</button>
+            <div id="adminLoginError" style="color:red;margin-top:10px;"></div>
+        </div>
+    </div>
+    <div class="main-wrapper" style="display:none;">
+        <h2>Админ-панель</h2>
+        <button onclick="window.open('online.html','_blank')" style="margin-bottom:20px;">Кто в сети</button>
+        <button onclick="window.open('logs.html','_blank')" style="margin-bottom:20px;">Логи действий</button>
+        <button onclick="window.open('users.html','_blank')" style="margin-bottom:20px;">Зарегистрированные пользователи</button>
+        <div id="adminPanel" style="margin-top: 30px;">
+            <div class="admin-columns">
+                <div class="admin-left">
+                    <!-- Секции для левой колонки -->
+                    <div class="admin-section">
+                        <h4>Поиск пользователя и подтверждение</h4>
+                        <label for="adminUsernameSearch">Имя пользователя:</label>
+                        <input type="text" id="adminUsernameSearch" name="adminUsernameSearch">
+                        <button onclick="searchUserForAdmin()">Найти пользователя</button>
+                        <div id="userInfoForAdmin"></div>
+                        <div id="blockUserControls" style="display:none; margin-top:10px;">
+                            <label for="blockMinutes">Блокировать на (мин):</label>
+                            <input type="number" id="blockMinutes" min="1" max="1440" value="30" style="width:60px;">
+                            <button onclick="blockUser()">Заблокировать пользователя</button>
+                            <span id="blockUserMsg" style="margin-left:10px;color:green;"></span>
+                        </div>
+                    </div>
+                    <div class="admin-section">
+                        <h4>Изменение пароля пользователя</h4>
+                        <label for="changePasswordUsername">Имя пользователя:</label>
+                        <input type="text" id="changePasswordUsername" name="changePasswordUsername">
+                        <label for="newPassword">Новый пароль:</label>
+                        <input type="password" id="newPassword" name="newPassword">
+                        <label for="confirmNewPassword">Подтвердите пароль:</label>
+                        <input type="password" id="confirmNewPassword" name="confirmNewPassword">
+                        <button onclick="changeUserPassword()">Изменить пароль</button>
+                    </div>
+                    <div class="admin-section">
+                        <h4>Изменение имени и фамилии пользователя</h4>
+                        <label for="changeNameUsername">Имя пользователя:</label>
+                        <input type="text" id="changeNameUsername" name="changeNameUsername">
+                        <label for="newFirstName">Новое имя:</label>
+                        <input type="text" id="newFirstName" name="newFirstName">
+                        <label for="newLastName">Новая фамилия:</label>
+                        <input type="text" id="newLastName" name="newLastName">
+                        <button onclick="changeUserName()">Изменить имя/фамилию</button>
+                    </div>
+                    <div class="admin-section">
+                        <h4>Изменение роли пользователя</h4>
+                        <label for="changeRoleUsername">Имя пользователя:</label>
+                        <input type="text" id="changeRoleUsername" name="changeRoleUsername">
+                        <label for="newUserRole">Новая роль:</label>
+                        <select id="newUserRole" name="newUserRole">
+                            <option value="student">Студент</option>
+                            <option value="teacher">Преподаватель</option>
+                            <option value="admin">Администратор</option>
+                        </select>
+                        <button onclick="changeUserRole()">Изменить роль</button>
+                    </div>
+                </div>
+                <div class="admin-right">
+                    <!-- Секции для правой колонки -->
+                    <div class="admin-section">
+                        <h4>Добавление дополнительной роли студенту</h4>
+                        <label for="addRoleUsername">Имя пользователя (студента):</label>
+                        <input type="text" id="addRoleUsername" name="addRoleUsername">
+                        <label for="additionalRole">Дополнительная роль:</label>
+                        <input type="text" id="additionalRole" name="additionalRole">
+                        <button onclick="addUserAdditionalRole()">Добавить доп. роль</button>
+                    </div>
+                    <div class="admin-section">
+                        <h4>Заявки на регистрацию</h4>
+                        <div id="pendingUsersList"></div>
+                    </div>
+                    <div class="admin-section">
+                        <h4>Заявки на смену пароля</h4>
+                        <div id="passwordRequestsList"></div>
+                    </div>
+                    <div class="admin-section">
+                        <h3>Зарегистрировать старосту или зам. старосты</h3>
+                        <input type="text" id="newLeaderUsername" placeholder="Имя пользователя">
+                        <input type="password" id="newLeaderPassword" placeholder="Пароль">
+                        <select id="newLeaderRole">
+                            <option value="headman">Староста</option>
+                            <option value="deputy_headman">Зам старосты</option>
+                        </select>
+                        <button onclick="registerLeader()">Зарегистрировать</button>
+                        <div id="leaderRegMsg"></div>
+                    </div>
+                    <div class="admin-section" style="margin-bottom:32px;">
+                        <h3>Зарегистрировать пользователя</h3>
+                        <input type="text" id="newUserLogin" placeholder="Логин для входа"><br>
+                        <input type="text" id="newUserFullName" placeholder="ФИО (отображаемое имя)"><br>
+                        <input type="password" id="newUserPassword" placeholder="Пароль"><br>
+                        <select id="newUserRoleRegister">
+                            <option value="student">Студент</option>
+                            <option value="headman">Староста</option>
+                            <option value="deputy_headman">Зам старосты</option>
+                            <option value="curator">Куратор</option>
+                            <option value="admin">Администратор</option>
+                        </select>
+                        <button onclick="registerUser()">Зарегистрировать</button>
+                        <div id="userRegMsg"></div>
+                    </div>
+                    <div class="admin-section" style="margin-bottom:32px;">
+                        <h3>Импорт пользователей из Excel</h3>
+                        <input type="file" id="excelInput" accept=".xlsx,.xls">
+                        <button id="importExcelBtn">Импортировать</button>
+                        <div id="excelImportMsg"></div>
+                    </div>
+                    <div class="admin-section" style="margin-bottom:32px;">
+                        <h3>Зарегистрировать родителя</h3>
+                        <input type="text" id="parentFullName" placeholder="ФИО родителя"><br>
+                        <input type="text" id="parentLogin" placeholder="Логин для входа"><br>
+                        <input type="password" id="parentPassword" placeholder="Пароль"><br>
+                        <input type="email" id="parentEmail" placeholder="Email"><br>
+                        <input type="text" id="childFullName" placeholder="ФИО ребёнка"><br>
+                        <button onclick="registerParent()">Зарегистрировать родителя</button>
+                        <div id="parentRegMsg"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <nav class="topbar" id="topbar">
+        <div class="topbar-links" id="topbarLinks">
+            <a href="index.html" class="sidebar-link" title="Главная">
+                <span class="sidebar-icon"><i class="fas fa-home"></i></span>
+                <span class="sidebar-label">Главная</span>
+            </a>
+            <a href="attendance.html" class="sidebar-link" title="Отметить явку">
+                <span class="sidebar-icon"><i class="fas fa-user-check"></i></span>
+                <span class="sidebar-label">Явка</span>
+            </a>
+            <a href="absences.html" class="sidebar-link" title="Явка за месяц">
+                <span class="sidebar-icon"><i class="fas fa-chart-bar"></i></span>
+                <span class="sidebar-label">Явка за месяц</span>
+            </a>
+            <a href="students.html" class="sidebar-link" title="Панель старосты и его зама">
+                <span class="sidebar-icon"><i class="fas fa-user-graduate"></i></span>
+                <span class="sidebar-label">Панель старосты и его зама</span>
+            </a>
+            <a id="adminLink" href="admin.html" class="sidebar-link" style="display:none;">
+                <span class="sidebar-icon"><i class="fas fa-user-shield"></i></span>
+                <span class="sidebar-label">Админ<br>панель</span>
+            </a>
+            <a href="settings.html" class="sidebar-link" title="Настройки">
+                <span class="sidebar-icon"><i class="fas fa-cog"></i></span>
+                <span class="sidebar-label settings-label">Настройки</span>
+            </a>
+            <button class="logout-btn" onclick="window.location.href='login.html'">
+                <span class="sidebar-icon"><i class="fas fa-sign-out-alt"></i></span>
+                <span class="logout-label">Выйти</span>
+            </button>
+        </div>
+    </nav>
+    <script>
+        function searchUserForAdmin() {
+            const username = document.getElementById('adminUsernameSearch').value.trim();
+            const infoDiv = document.getElementById('userInfoForAdmin');
+            const blockControls = document.getElementById('blockUserControls');
+            const blockMsg = document.getElementById('blockUserMsg');
+            blockMsg.textContent = '';
+
+            if (!username) {
+                infoDiv.innerHTML = '<span style="color:red;">Введите имя пользователя.</span>';
+                blockControls.style.display = 'none';
+                return;
+            }
+
+            fetch('https://rapartichka-site.onrender.com/users')
+                .then(res => res.json())
+                .then(users => {
+                    const user = users.find(u => u.username === username);
+                    if (!user) {
+                        infoDiv.innerHTML = '<span style="color:red;">Пользователь не найден.</span>';
+                        blockControls.style.display = 'none';
+                        return;
+                    }
+                    infoDiv.innerHTML = `
+                        <b>Имя пользователя:</b> ${user.username}<br>
+                        <b>Роль:</b> ${user.roleName || user.role || '-'}<br>
+                        <b>ФИО:</b> ${user.fullName || '-'}<br>
+                        <b>Статус:</b> ${user.blockedUntil && Date.now() < user.blockedUntil ? `<span style="color:red;">Заблокирован до ${new Date(user.blockedUntil).toLocaleString()}</span>` : '<span style="color:green;">Активен</span>'}
+                    `;
+                    blockControls.style.display = '';
+                    blockControls.dataset.username = user.username;
+                })
+                .catch(() => {
+                    infoDiv.innerHTML = '<span style="color:red;">Ошибка соединения с сервером.</span>';
+                    blockControls.style.display = 'none';
+                });
+        }
+
+        function changeUserPassword() {
+            const username = document.getElementById('changePasswordUsername').value.trim();
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+
+            if (!username || !newPassword || !confirmNewPassword) {
+                alert('Пожалуйста, заполните все поля.');
+                return;
+            }
+            if (newPassword !== confirmNewPassword) {
+                alert('Пароли не совпадают!');
+                return;
+            }
+
+            let users = JSON.parse(localStorage.getItem('users')) || [];
+            const userIndex = users.findIndex(u => u.username === username);
+
+            if (userIndex === -1) {
+                alert('Пользователь не найден.');
+                return;
+            }
+
+            if (!confirm(`Вы уверены, что хотите изменить пароль для пользователя "${username}"?`)) {
+                return;
+            }
+
+            users[userIndex].password = newPassword;
+            localStorage.setItem('users', JSON.stringify(users));
+            alert('Пароль успешно изменён!');
+            // Очищаем поля
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmNewPassword').value = '';
+        }
+
+        // Здесь разместите остальные функции: changeUserName, changeUserRole, addStudentAdditionalRole
+        // Пример заглушки:
+        function changeUserName() { alert('Изменение имени/фамилии (реализуйте логику)'); }
+        function changeUserRole() { alert('Изменение роли (реализуйте логику)'); }
+        function addUserAdditionalRole() {
+    const username = document.getElementById('addRoleUsername').value.trim();
+    const additionalRole = document.getElementById('additionalRole').value.trim();
+
+    if (!username || !additionalRole) {
+        alert('Пожалуйста, заполните все поля.');
+        return;
+    }
+
+    // Получаем пользователей с сервера
+    fetch('https://rapartichka-site.onrender.com/users')
+        .then(res => res.json())
+        .then(users => {
+            const userIndex = users.findIndex(u => u.username === username);
+            if (userIndex === -1) {
+                alert('Пользователь не найден.');
+                return;
+            }
+
+            if (!users[userIndex].additionalRoles) {
+                users[userIndex].additionalRoles = [];
+            }
+
+            if (users[userIndex].additionalRoles.includes(additionalRole)) {
+                alert('У пользователя уже есть такая дополнительная роль.');
+                return;
+            }
+
+            users[userIndex].additionalRoles.push(additionalRole);
+
+            // Сохраняем обновлённый список пользователей на сервере
+            fetch('https://rapartichka-site.onrender.com/users/' + encodeURIComponent(username) + '/roles', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ additionalRoles: users[userIndex].additionalRoles })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Дополнительная роль успешно добавлена!');
+                    // Обновляем localStorage для текущего пользователя, если он сейчас залогинен
+                    fetch('https://rapartichka-site.onrender.com/users')
+                        .then(res => res.json())
+                        .then(users => {
+                            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+                            if (!currentUser) return;
+                            const updated = users.find(u => u.username === currentUser.username);
+                            if (updated) {
+                                localStorage.setItem('currentUser', JSON.stringify(updated));
+                            }
+                        });
+                } else {
+                    alert(data.error || 'Ошибка при добавлении роли');
+                }
+            })
+            .catch(() => alert('Ошибка соединения с сервером'));
+        })
+        .catch(() => alert('Ошибка загрузки пользователей'));
+}
+
+        // Функция для отображения заявок на регистрацию
+function renderPendingUsers() {
+    const pendingUsers = JSON.parse(localStorage.getItem('pendingUsers')) || [];
+    const container = document.getElementById('pendingUsersList');
+    if (pendingUsers.length === 0) {
+        container.innerHTML = '<i>Нет заявок на регистрацию.</i>';
+        return;
+    }
+    container.innerHTML = pendingUsers.map((u, idx) => `
+        <div style="border:1px solid #ccc; margin:7px 0; padding:7px;">
+            <b>Имя пользователя:</b> ${u.username}<br>
+            <b>Роль:</b> ${u.roleName || u.role}<br>
+            <button onclick="approveUser(${idx})">Подтвердить</button>
+            <button onclick="rejectUser(${idx})" style="color:red;">Отклонить</button>
+        </div>
+    `).join('');
+}
+
+// Подтверждение пользователя
+function approveUser(index) {
+    let pendingUsers = JSON.parse(localStorage.getItem('pendingUsers')) || [];
+    const user = pendingUsers[index];
+    if (!user) return;
+
+    fetch('https://rapartichka-site.onrender.com/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            username: user.username,
+            fullName: user.fullName || user.username,
+            password: user.password || '123456',
+            role: user.role || 'student',
+            roleName: user.roleName || 'Студент',
+            avatar: '',
+            additionalRoles: [],
+            approved: true
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            // Удаляем из pendingUsers
+            pendingUsers.splice(index, 1);
+            localStorage.setItem('pendingUsers', JSON.stringify(pendingUsers));
+            renderPendingUsers();
+            alert('Пользователь подтверждён!');
+        } else {
+            alert(data.error || 'Ошибка подтверждения');
+        }
+    })
+    .catch(() => alert('Ошибка соединения с сервером'));
+}
+
+// Отклонение заявки
+function rejectUser(index) {
+    let pendingUsers = JSON.parse(localStorage.getItem('pendingUsers')) || [];
+    if (confirm('Отклонить заявку?')) {
+        pendingUsers.splice(index, 1);
+        localStorage.setItem('pendingUsers', JSON.stringify(pendingUsers));
+        renderPendingUsers();
+    }
+}
+
+// Показываем заявки при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    renderPendingUsers();
+});
+
+window.addEventListener('storage', function(event) {
+    if (event.key === 'pendingUsers') {
+        renderPendingUsers();
+    }
+});
+
+// Регистрация старосты или зам. старосты
+function registerLeader() {
+    const username = document.getElementById('newLeaderUsername').value.trim();
+    const password = document.getElementById('newLeaderPassword').value;
+    const role = document.getElementById('newLeaderRole').value;
+    const roleName = document.getElementById('newLeaderRole').selectedOptions[0].text;
+    const msgDiv = document.getElementById('leaderRegMsg');
+
+    msgDiv.textContent = '';
+    if (!username || !password) {
+        msgDiv.textContent = 'Заполните все поля!';
+        msgDiv.style.color = 'red';
+        return;
+    }
+    let users = JSON.parse(localStorage.getItem('users')) || [];
+    if (users.some(u => u.username === username)) {
+        msgDiv.textContent = 'Пользователь с таким именем уже существует.';
+        msgDiv.style.color = 'red';
+        return;
+    }
+    users.push({ username, password, role, roleName, approved: true });
+    localStorage.setItem('users', JSON.stringify(users));
+    msgDiv.textContent = 'Пользователь успешно зарегистрирован!';
+    msgDiv.style.color = 'green';
+    document.getElementById('newLeaderUsername').value = '';
+    document.getElementById('newLeaderPassword').value = '';
+}
+
+// Регистрация пользователя
+function registerUser() {
+    const username = document.getElementById('newUserLogin').value.trim();
+    const fullName = document.getElementById('newUserFullName').value.trim();
+    const password = document.getElementById('newUserPassword').value;
+    const role = document.getElementById('newUserRoleRegister').value;
+    const roleName = document.getElementById('newUserRoleRegister').selectedOptions[0].text;
+    const msgDiv = document.getElementById('userRegMsg');
+
+    msgDiv.textContent = '';
+    if (!username || !fullName || !password) {
+        msgDiv.textContent = 'Заполните все поля!';
+        msgDiv.style.color = 'red';
+        return;
+    }
+
+    fetch('https://rapartichka-site.onrender.com/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            username,
+            fullName,
+            password,
+            role,
+            roleName,
+            avatar: '',
+            additionalRoles: [],
+            approved: true
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            msgDiv.textContent = 'Пользователь успешно зарегистрирован!';
+            msgDiv.style.color = 'green';
+            document.getElementById('newUserLogin').value = '';
+            document.getElementById('newUserFullName').value = '';
+            document.getElementById('newUserPassword').value = '';
+        } else {
+            msgDiv.textContent = data.error || 'Ошибка регистрации';
+            msgDiv.style.color = 'red';
+        }
+    })
+    .catch(() => {
+        msgDiv.textContent = 'Ошибка соединения с сервером';
+        msgDiv.style.color = 'red';
+    });
+}
+
+    // --- Блок авторизации администратора ---
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('adminLoginModal');
+        const mainWrapper = document.querySelector('.main-wrapper');
+        const loginInput = document.getElementById('adminLoginInput');
+        const passInput = document.getElementById('adminPasswordInput');
+        const rememberMe = document.getElementById('adminRememberMe');
+        const backBtn = document.getElementById('backToLoginBtn'); // <-- добавьте эту строку
+
+        // Проверяем, был ли вход менее 5 минут назад
+        const lastLogin = localStorage.getItem('adminLoginTime');
+        const now = Date.now();
+        if (lastLogin && now - parseInt(lastLogin, 10) < 5 * 60 * 1000) {
+            // Если логин был менее 5 минут назад — сразу показываем панель
+            modal.style.display = 'none';
+            mainWrapper.style.display = '';
+            // Подставляем логин и пароль, если сохранены
+            if (localStorage.getItem('rememberedAdminLogin')) {
+                loginInput.value = localStorage.getItem('rememberedAdminLogin');
+                rememberMe.checked = true;
+            }
+            if (localStorage.getItem('rememberedAdminPassword')) {
+                passInput.value = localStorage.getItem('rememberedAdminPassword');
+            }
+            return;
+        }
+
+        const loginBtn = document.getElementById('adminLoginBtn');
+        const errorDiv = document.getElementById('adminLoginError');
+
+        loginInput.focus();
+
+        loginBtn.onclick = function() {
+            const username = loginInput.value.trim();
+            const password = passInput.value;
+            if (!username || !password) {
+                errorDiv.textContent = 'Введите имя и пароль администратора!';
+                return;
+            }
+            // Сохраняем логин и пароль если нужно
+            if (rememberMe.checked) {
+                localStorage.setItem('rememberedAdminLogin', username);
+                localStorage.setItem('rememberedAdminPassword', password);
+            } else {
+                localStorage.removeItem('rememberedAdminLogin');
+                localStorage.removeItem('rememberedAdminPassword');
+            }
+            fetch('https://rapartichka-site.onrender.com/admin-login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    errorDiv.textContent = 'Неверный логин или пароль администратора!';
+                } else if (data.role === 'admin') {
+                    // Сохраняем время входа
+                    localStorage.setItem('adminLoginTime', Date.now().toString());
+                    modal.style.display = 'none';
+                    document.querySelector('.main-wrapper').style.display = '';
+                } else {
+                    errorDiv.textContent = 'Нет доступа!';
+                }
+            })
+            .catch(() => {
+                errorDiv.textContent = 'Ошибка соединения с сервером';
+            });
+        };
+
+        // Позволяет нажимать Enter для входа
+        passInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') loginBtn.click();
+        });
+        loginInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') passInput.focus();
+        });
+
+        // Кнопка "Вернуться к входу"
+        backBtn.onclick = function() {
+            window.location.href = 'login.html';
+        };
+    });
+    // --- Конец блока авторизации администратора ---
+</script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Обработчик импорта Excel
+        document.getElementById('importExcelBtn').onclick = function() {
+            const fileInput = document.getElementById('excelInput');
+            const msgDiv = document.getElementById('excelImportMsg');
+            msgDiv.textContent = '';
+            if (!fileInput.files.length) {
+                msgDiv.textContent = 'Выберите файл Excel!';
+                msgDiv.style.color = 'red';
+                return;
+            }
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const users = XLSX.utils.sheet_to_json(sheet);
+
+                    if (!users.length) {
+                        msgDiv.textContent = 'Нет данных для импорта!';
+                        msgDiv.style.color = 'red';
+                        return;
+                    }
+
+                    let success = 0, fail = 0;
+                    let promises = users.map(u => {
+                        return fetch('https://rapartichka-site.onrender.com/register', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                username: u.username || u.Логин || u.login,
+                                fullName: u.fullName || u.ФИО || u.name,
+                                password: u.password || u.Пароль || '123456',
+                                role: u.role || u.Роль || 'student',
+                                roleName: u.roleName || u.РольНаРусском || 'Студент',
+                                avatar: '',
+                                additionalRoles: [],
+                                approved: true
+                            })
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) success++;
+                            else {
+                                fail++;
+                                console.log('Ошибка для пользователя:', u, data.error);
+                            }
+                        })
+                        .catch(() => { fail++; });
+                    });
+
+                    Promise.all(promises).then(() => {
+                        msgDiv.textContent = `Импорт завершён. Успешно: ${success}, ошибок: ${fail}`;
+                        msgDiv.style.color = 'green';
+                    });
+                } catch (err) {
+                    msgDiv.textContent = 'Ошибка чтения файла!';
+                    msgDiv.style.color = 'red';
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        };
+    });
+</script>
+</body>
+</html>

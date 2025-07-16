@@ -1,0 +1,504 @@
+<!-- исправленный absences.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Все посещения</title>
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        .attendance-list {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            margin-top: 30px;
+            align-items: center;
+        }
+        .attendance-card {
+            background: #23262C;
+            border-radius: 14px;
+            box-shadow: 0 2px 12px 0 #0003;
+            padding: 22px 28px 18px 28px;
+            min-width: 320px;
+            max-width: 420px;
+            width: 100%;
+            color: #fff;
+            text-align: left;
+            transition: box-shadow 0.2s;
+            border-left: 6px solid #27ae60;
+        }
+        .attendance-card .status-present { color: #27ae60; }
+        .attendance-card .status-absent { color: #e74c3c; }
+        .attendance-card .status-late { color: #f39c12; }
+        .attendance-card .status-sick { color: #2980ef; }
+        .attendance-card .status-excused { color: #8e44ad; } /* добавлен стиль для уважительной причины */
+        .attendance-card strong {
+            display: inline-block;
+            min-width: 110px;
+            color: #b8bfc9;
+        }
+        .attendance-card:not(:last-child) {
+            margin-bottom: 10px;
+        }
+        .attendance-card .comment {
+            color: #ffd700;
+            font-style: italic;
+        }
+        /* Добавим стили для статусов в таблице */
+        .status-present { color: #27ae60; }
+        .status-absent { color: #e74c3c; }
+        .status-late { color: #f39c12; }
+        .status-sick { color: #2980ef; }
+        .status-excused { color: #8e44ad; }
+
+        .attendance-timeline {
+            position: relative;
+            margin: 40px auto 0 auto;
+            max-width: 600px;
+            padding-left: 32px;
+        }
+        .attendance-timeline::before {
+            content: '';
+            position: absolute;
+            left: 18px;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: #444;
+            border-radius: 2px;
+        }
+        .timeline-item {
+            position: relative;
+            margin-bottom: 36px;
+            padding-left: 36px;
+        }
+        .timeline-icon {
+            position: absolute;
+            left: -2px;
+            top: 0;
+            width: 36px;
+            height: 36px;
+            background: #23262C;
+            border-radius: 50%;
+            border: 3px solid #27ae60;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4em;
+            color: #fff;
+            box-shadow: 0 2px 8px #0002;
+        }
+        .timeline-item.status-absent .timeline-icon { border-color: #e74c3c; color: #e74c3c; }
+        .timeline-item.status-late .timeline-icon { border-color: #f39c12; color: #f39c12; }
+        .timeline-item.status-sick .timeline-icon { border-color: #2980ef; color: #2980ef; }
+        .timeline-item.status-excused .timeline-icon { border-color: #8e44ad; color: #8e44ad; }
+        .timeline-item.status-present .timeline-icon { border-color: #27ae60; color: #27ae60; }
+        .timeline-content {
+            background: #23262C;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px 0 #0003;
+            padding: 18px 24px;
+            color: #fff;
+            margin-left: 16px;
+        }
+        .timeline-content strong {
+            color: #b8bfc9;
+            min-width: 110px;
+            display: inline-block;
+        }
+        .timeline-content .comment {
+            color: #ffd700;
+            font-style: italic;
+        }
+
+        .month-section {
+            margin-bottom: 36px;
+        }
+        .month-title {
+            font-size: 1.2em;
+            color: #ffd700;
+            margin: 18px 0 12px 0;
+            font-weight: bold;
+        }
+        .card-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+        }
+        .attendance-card {
+            background: #23262C;
+            border-radius: 14px;
+            box-shadow: 0 2px 12px 0 #0003;
+            padding: 18px 22px 14px 22px;
+            min-width: 260px;
+            max-width: 340px;
+            width: 100%;
+            color: #fff;
+            text-align: left;
+            border-left: 6px solid #27ae60;
+            margin-bottom: 0;
+            transition: box-shadow 0.2s;
+            position: relative;
+        }
+        .attendance-card .status-present { color: #27ae60; }
+        .attendance-card .status-absent { color: #e74c3c; }
+        .attendance-card .status-late { color: #f39c12; }
+        .attendance-card .status-sick { color: #2980ef; }
+        .attendance-card .status-excused { color: #8e44ad; }
+        .attendance-card strong {
+            display: inline-block;
+            min-width: 90px;
+            color: #b8bfc9;
+        }
+        .attendance-card .comment {
+            color: #ffd700;
+            font-style: italic;
+        }
+        .attendance-card .status-icon {
+            font-size: 1.2em;
+            margin-right: 7px;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+<nav class="topbar" id="topbar">
+    <div class="topbar-links" id="topbarLinks">
+        <a href="index.html" class="sidebar-link" title="Главная">
+            <span class="sidebar-icon"><i class="fas fa-home"></i></span>
+            <span class="sidebar-label">Главная</span>
+        </a>
+        <a href="attendance.html" class="sidebar-link" title="Отметить явку">
+            <span class="sidebar-icon"><i class="fas fa-user-check"></i></span>
+            <span class="sidebar-label">Явка</span>
+        </a>
+        <a href="absences.html" class="sidebar-link" title="Явка за месяц">
+            <span class="sidebar-icon"><i class="fas fa-chart-bar"></i></span>
+            <span class="sidebar-label">Явка за месяц</span>
+        </a>
+        <a href="students.html" class="sidebar-link" title="Панель старосты и его зама">
+            <span class="sidebar-icon"><i class="fas fa-user-graduate"></i></span>
+            <span class="sidebar-label">Панель старосты и его зама</span>
+        </a>
+        <a id="adminLink" href="admin.html" class="sidebar-link" style="display:none;">
+            <span class="sidebar-icon"><i class="fas fa-user-shield"></i></span>
+            <span class="sidebar-label">Админ<br>панель</span>
+        </a>
+        <a href="settings.html" class="sidebar-link" title="Настройки">
+            <span class="sidebar-icon"><i class="fas fa-cog"></i></span>
+            <span class="sidebar-label settings-label">Настройки</span>
+        </a>
+        <button class="logout-btn" onclick="window.location.href='login.html'">
+            <span class="sidebar-icon"><i class="fas fa-sign-out-alt"></i></span>
+            <span class="logout-label">Выйти</span>
+        </button>
+    </div>
+</nav>
+<div class="container">
+    <h2>Все посещения</h2>
+    <!-- Фильтры: ФИО (выпадающий), месяц, дата -->
+    <div style="margin-bottom: 24px; display: flex; gap: 18px; flex-wrap: wrap;">
+        <select id="filterStudent" style="padding:7px 14px; border-radius:7px; border:1px solid #bbb; font-size:1em; min-width:160px;">
+            <option value="">Все студенты</option>
+        </select>
+        <select id="filterMonth" style="padding:7px 14px; border-radius:7px; border:1px solid #bbb; font-size:1em;">
+            <option value="">Все месяцы</option>
+        </select>
+        <input id="filterDate" type="date" style="padding:7px 14px; border-radius:7px; border:1px solid #bbb; font-size:1em;">
+        <button id="clearFiltersBtn" style="padding:7px 18px; border-radius:7px; border:none; background:#eee; color:#222; cursor:pointer;">Сбросить</button>
+    </div>
+    <div id="attendanceTable"></div>
+    <script>
+    async function loadAttendanceFromCSV() {
+        const url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRfwyQot5zJ8pR8FVhTAC-ah3MhVM1GbmEIlDJBzaPJnFmh33497dlJtODm_HodLtckVjSh8C0jmk_I/pub?output=csv'; // <-- вставь свой ID
+        const res = await fetch(url);
+        const text = await res.text();
+        const rows = text.trim().split('\n').map(row => row.split(','));
+
+        let html = '<table border="1" cellpadding="6" style="width:100%;border-collapse:collapse;background:#23262C;color:#fff;">';
+        rows.forEach((row, i) => {
+            html += '<tr>';
+            row.forEach(cell => html += `<td>${cell}</td>`);
+            html += '</tr>';
+        });
+        html += '</table>';
+        document.getElementById('attendanceTable').innerHTML = html;
+    }
+
+    document.addEventListener('DOMContentLoaded', loadAttendanceFromCSV);
+    </script>
+</div>
+<!-- Модальное окно подтверждения -->
+<div id="deleteModal" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:#0007; z-index:1000; align-items:center; justify-content:center;">
+    <div style="background:#fff; color:#222; border-radius:12px; padding:32px 28px; min-width:280px; max-width:90vw; box-shadow:0 8px 32px #0003; text-align:center;">
+        <div style="font-size:1.2em; margin-bottom:18px;">Вы действительно хотите удалить эту запись?</div>
+        <div style="display:flex; gap:18px; justify-content:center;">
+            <button id="modalConfirmBtn" style="background:#e74c3c; color:#fff; border:none; border-radius:6px; padding:8px 22px; font-size:1em; cursor:pointer;">Удалить</button>
+            <button id="modalCancelBtn" style="background:#eee; color:#222; border:none; border-radius:6px; padding:8px 22px; font-size:1em; cursor:pointer;">Отмена</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function getMissedHours(status) {
+        if (status === 'Отсутствовал') return 2;
+        if (status === 'Опоздал') return 1;
+        if (status === 'Больничный' || status === 'Уважительная причина') return 2;
+        return 0;
+    }
+
+    let allAbsences = [];
+
+    // Заполнить выпадающий список студентов
+    function fillStudentSelect(data) {
+        const select = document.getElementById('filterStudent');
+        const students = Array.from(new Set(data.map(row => row.student).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'ru'));
+        select.innerHTML = `<option value="">Все студенты</option>`;
+        students.forEach(name => {
+            const opt = document.createElement('option');
+            opt.value = name;
+            opt.textContent = name;
+            select.appendChild(opt);
+        });
+    }
+
+    // Заполнить выпадающий список месяцев
+    function fillMonthSelect(data) {
+        const select = document.getElementById('filterMonth');
+        const months = Array.from(new Set(data.map(row => row.date && row.date.slice(0, 7)).filter(Boolean))).sort().reverse();
+        select.innerHTML = `<option value="">Все месяцы</option>`;
+        months.forEach(month => {
+            const [y, m] = month.split('-');
+            const label = `${m}.${y}`;
+            const opt = document.createElement('option');
+            opt.value = month;
+            opt.textContent = label;
+            select.appendChild(opt);
+        });
+    }
+
+    function getStatusIcon(status) {
+        if (status === 'Присутствовал') return 'fa-check-circle';
+        if (status === 'Отсутствовал') return 'fa-times-circle';
+        if (status === 'Опоздал') return 'fa-clock';
+        if (status === 'Больничный') return 'fa-thermometer-half';
+        if (status === 'Уважительная причина') return 'fa-user-shield';
+        return 'fa-question-circle';
+    }
+
+    // Группировка по месяцу
+    function groupByMonth(data) {
+        const groups = {};
+        data.forEach(row => {
+            if (!row.date) return;
+            const month = row.date.slice(0, 7);
+            if (!groups[month]) groups[month] = [];
+            groups[month].push(row);
+        });
+        return groups;
+    }
+
+    function renderAttendanceCardsByMonth(data) {
+        const filterStudent = document.getElementById('filterStudent').value;
+        const filterMonth = document.getElementById('filterMonth').value;
+        const filterDate = document.getElementById('filterDate').value;
+
+        let filtered = data;
+        if (filterStudent) {
+            filtered = filtered.filter(row => row.student === filterStudent);
+        }
+        if (filterMonth) {
+            filtered = filtered.filter(row => row.date && row.date.startsWith(filterMonth));
+        }
+        if (filterDate) {
+            filtered = filtered.filter(row => row.date === filterDate);
+        }
+
+        const grouped = groupByMonth(filtered);
+        let html = '';
+
+        const monthKeys = Object.keys(grouped).sort().reverse();
+        if (!monthKeys.length) {
+            html = `<div style="text-align:center;">Нет данных</div>`;
+        } else {
+            monthKeys.forEach(month => {
+                const [y, m] = month.split('-');
+                html += `<div class="month-section">
+                    <div class="month-title">${m}.${y}</div>
+                    <div class="card-list">`;
+                grouped[month].forEach((row, idx) => {
+                    const statusClass = row.status ? 'status-' + row.status.toLowerCase() : '';
+                    const missedHours = getMissedHours(row.status);
+                    // Найти глобальный индекс записи для удаления
+                    const globalIndex = allAbsences.findIndex(
+                        r => r.date === row.date && r.student === row.student && r.subject === row.subject && r.status === row.status && r.comment === row.comment
+                    );
+                    html += `
+                    <div class="attendance-card ${statusClass}">
+                        <div><strong>Дата:</strong> ${row.date || ''}</div>
+                        <div><strong>Пара:</strong> ${row.lesson ? row.lesson + ' пара' : '—'}</div>
+                        <div><strong>ФИО:</strong> ${row.student || ''}</div>
+                        <div><strong>Предмет:</strong> ${row.subject || ''}</div>
+                        <div><strong>Статус:</strong>
+                            <span class="status-icon"><i class="fas ${getStatusIcon(row.status)}"></i></span>
+                            <span class="${statusClass}">${row.status || ''}</span>
+                        </div>
+                        <div><strong>Комментарий:</strong> <span class="comment">${row.comment || ''}</span></div>
+                        <div><strong>Пропущено часов:</strong> ${missedHours}</div>
+                        <button onclick="showDeleteModal(${globalIndex}, '${month}')" style="margin-top:10px; background:#e74c3c; color:#fff; border:none; border-radius:6px; padding:6px 18px; cursor:pointer;">
+                            <i class="fas fa-trash"></i> Удалить
+                        </button>
+                    </div>
+                    `;
+                });
+                html += `</div></div>`;
+            });
+        }
+        document.getElementById('attendanceTable').innerHTML = html;
+    }
+
+    // Добавь эту функцию в твой <script>
+    function renderAttendanceTableByDays(data) {
+        // Собираем уникальные даты и студентов
+        const dates = Array.from(new Set(data.map(row => row.date))).sort();
+        const students = Array.from(new Set(data.map(row => row.student))).sort((a, b) => a.localeCompare(b, 'ru'));
+
+        // Формируем таблицу
+        let html = '<table border="1" cellpadding="6" style="width:100%;border-collapse:collapse;background:#23262C;color:#fff;">';
+        html += '<thead><tr><th>Дата</th>';
+        students.forEach(student => {
+            html += `<th>${student}</th>`;
+        });
+        html += '</tr></thead><tbody>';
+
+        dates.forEach(date => {
+            html += `<tr><td>${date}</td>`;
+            students.forEach(student => {
+                // Находим запись для этого студента и даты
+                const rec = data.find(row => row.date === date && row.student === student);
+                if (rec) {
+                    html += `<td><span class="status-${rec.status ? rec.status.toLowerCase() : ''}">${rec.status || ''}</span></td>`;
+                } else {
+                    html += `<td>-</td>`;
+                }
+            });
+            html += '</tr>';
+        });
+
+        html += '</tbody></table>';
+        document.getElementById('attendanceTable').innerHTML = html;
+    }
+
+    async function loadAbsences() {
+        const res = await fetch('https://rapartichka-site.onrender.com/absences');
+        allAbsences = await res.json();
+        fillStudentSelect(allAbsences);
+        fillMonthSelect(allAbsences);
+        // renderAttendanceTableByDays(allAbsences); // Удалить или закомментировать эту строку
+        renderAttendanceCardsByMonth(allAbsences);   // Оставить только этот вызов
+    }
+    document.addEventListener('DOMContentLoaded', loadAbsences);
+
+    // Обработчики фильтров
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('filterStudent').addEventListener('change', () => renderAttendanceCardsByMonth(allAbsences));
+        document.getElementById('filterMonth').addEventListener('change', () => renderAttendanceCardsByMonth(allAbsences));
+        document.getElementById('filterDate').addEventListener('input', () => renderAttendanceCardsByMonth(allAbsences));
+        document.getElementById('clearFiltersBtn').addEventListener('click', () => {
+            document.getElementById('filterStudent').value = '';
+            document.getElementById('filterMonth').value = '';
+            document.getElementById('filterDate').value = '';
+            renderAttendanceCardsByMonth(allAbsences);
+        });
+    });
+
+    // --- Модальное подтверждение удаления ---
+    let deleteAbsenceIndex = null;
+    let deleteAbsenceMonth = null;
+
+    function showDeleteModal(index, month) {
+        deleteAbsenceIndex = index;
+        deleteAbsenceMonth = month;
+        document.getElementById('deleteModal').style.display = 'flex';
+    }
+    function hideDeleteModal() {
+        document.getElementById('deleteModal').style.display = 'none';
+        deleteAbsenceIndex = null;
+        deleteAbsenceMonth = null;
+    }
+
+    document.getElementById('modalCancelBtn').onclick = hideDeleteModal;
+    document.getElementById('modalConfirmBtn').onclick = async function() {
+        if (deleteAbsenceIndex !== null && deleteAbsenceMonth !== null) {
+            await deleteAbsence(deleteAbsenceIndex, deleteAbsenceMonth, true);
+        }
+        hideDeleteModal();
+    };
+
+    // --- изменённая функция удаления ---
+    async function deleteAbsence(index, month, confirmed = false) {
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        const allowedRoles = ['headman', 'deputy_headman', 'curator', 'admin', 'администратор', 'староста', 'зам старосты', 'куратор'];
+        function canDelete() {
+            if (!currentUser) return false;
+            const role = (currentUser.role || '').toLowerCase();
+            const roleName = (currentUser.roleName || '').toLowerCase();
+            return allowedRoles.includes(role) || allowedRoles.includes(roleName);
+        }
+        if (!canDelete()) {
+            alert('Удалять явку могут только староста, зам старосты, куратор или администратор!');
+            return;
+        }
+        if (!confirmed) {
+            showDeleteModal(index, month);
+            return;
+        }
+        try {
+            const res = await fetch('https://rapartichka-site.onrender.com/absences');
+            if (!res.ok) throw new Error('Ошибка загрузки данных');
+            let data = await res.json();
+            // Без фильтрации по месяцу, ищем по индексу в общем списке
+            const toDelete = data[index];
+            if (!toDelete) return;
+            const delRes = await fetch('https://rapartichka-site.onrender.com/absences', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(toDelete)
+            });
+            if (!delRes.ok) throw new Error('Ошибка удаления');
+            addActionLog(currentUser.username, `Удалил явку для ${toDelete.student} по предмету "${toDelete.subject}" (${toDelete.date})`);
+            await loadAbsences();
+        } catch (e) {
+            alert('Ошибка удаления');
+            console.error(e);
+        }
+    }
+
+    function addActionLog(user, action) {
+        const logs = JSON.parse(localStorage.getItem('actionLogs')) || [];
+        logs.unshift({
+            time: new Date().toLocaleString(),
+            user,
+            action
+        });
+        localStorage.setItem('actionLogs', JSON.stringify(logs.slice(0, 1000)));
+    }
+</script>
+<script>
+    // Проверка, был ли пользователь отключён администратором
+    function checkKicked() {
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        if (!user) return;
+        const onlineUsers = JSON.parse(localStorage.getItem('onlineUsers')) || [];
+        const isOnline = onlineUsers.some(u => u.username === user.username);
+        if (!isOnline) {
+            alert('Вы были отключены администратором!');
+            localStorage.removeItem('currentUser');
+            window.location.href = 'login.html';
+        }
+    }
+    setInterval(checkKicked, 5000);
+    checkKicked();
+</script>
+</body>
+</html>

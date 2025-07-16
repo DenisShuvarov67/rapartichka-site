@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Информация о группе</title>
+    <link rel="stylesheet" href="main.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<!-- Кнопка-бургер (видна только на мобильных) -->
+    <button class="sidebar-toggle" id="sidebarToggleBtn" aria-label="Открыть меню">
+        <span>&#9776;</span>
+    </button>
+
+    <!-- Сайдбар -->
+<nav class="sidebar" id="sidebar">
+    <a href="index.html" class="sidebar-link" title="Главная">
+        <span class="sidebar-icon"><i class="fas fa-home"></i></span>
+        <span class="sidebar-label">Главная</span>
+    </a>
+    <a href="attendance.html" class="sidebar-link" title="Отметить явку">
+        <span class="sidebar-icon"><i class="fas fa-user-check"></i></span>
+        <span class="sidebar-label">Явка</span>
+    </a>
+    <a href="absences.html" class="sidebar-link" title="Явка за месяц">
+        <span class="sidebar-icon"><i class="fas fa-chart-bar"></i></span>
+        <span class="sidebar-label">Явка за месяц</span>
+    </a>
+    <a href="students.html" class="sidebar-link" title="Панель старосты и его зама">
+        <span class="sidebar-icon"><i class="fas fa-user-graduate"></i></span>
+        <span class="sidebar-label">Панель старосты и его зама</span>
+    </a>
+    <a href="https://t.me/+rkj_U8Ou3uYyMzNi" class="sidebar-link" title="Чат в Telegram" target="_blank" rel="noopener">
+        <span class="sidebar-icon"><i class="fab fa-telegram-plane"></i></span>
+        <span class="sidebar-label">Telegram чат</span>
+    </a>
+    <a id="adminLink" href="admin.html" class="sidebar-link">
+        <span class="sidebar-icon"><i class="fas fa-user-shield"></i></span>
+        <span class="sidebar-label">Админ<br>панель</span>
+    </a>
+    <a href="settings.html" class="sidebar-link" title="Настройки">
+        <span class="sidebar-icon"><i class="fas fa-cog"></i></span>
+        <span class="sidebar-label settings-label">Настройки</span>
+    </a>
+    <a href="group-info.html" class="sidebar-link active" title="Информация о группе">
+        <span class="sidebar-icon"><i class="fas fa-users"></i></span>
+        <span class="sidebar-label">О группе</span>
+    </a>
+    <button class="logout-btn" id="logoutBtn">
+        <span class="sidebar-icon"><i class="fas fa-sign-out-alt"></i></span>
+        <span class="logout-label">Выйти</span>
+    </button>
+</nav>
+    <div class="main-wrapper">
+        <div class="container">
+             <h2>Информация о группе</h2>
+            <p>
+    <b>Название группы:</b>
+    <span id="groupName">Загрузка...</span>
+    <input id="groupNameInput" type="text" style="display:none;width:180px;">
+    <button id="saveGroupNameBtn" style="display:none;">Сохранить</button>
+    <button id="editGroupNameBtn" style="display:none;">✏️</button>
+</p>
+            <p><b>Куратор:</b> <span id="curatorName">Загрузка...</span></p>
+            <p>
+              <b>Староста:</b>
+              <span id="headmanName">Загрузка...</span>
+              <input id="headmanInput" type="text" style="display:none;width:180px;">
+              <button id="saveHeadmanBtn" style="display:none;">Сохранить</button>
+              <button id="editHeadmanBtn" style="display:none;">✏️</button>
+            </p>
+            <p>
+              <b>Количество студентов:</b>
+              <span id="studentsCount">Загрузка...</span>
+              <input id="studentsCountInput" type="number" min="1" style="display:none;width:80px;">
+              <button id="saveStudentsCountBtn" style="display:none;">Сохранить</button>
+              <button id="editStudentsCountBtn" style="display:none;">✏️</button>
+            </p>
+            <h3>Состав группы</h3>
+            <ul id="studentsList"></ul>
+            <div style="max-width:700px;margin-bottom:32px;">
+                <div>
+                    <h3>Список группы и обязанности</h3>
+                    <button id="addMemberBtn" style="margin-bottom:12px;padding:8px 18px;font-size:15px;">Добавить участника</button>
+                    <table border="1" cellpadding="6" style="width:100%;border-collapse:collapse;">
+    <thead>
+        <tr>
+            <th>ФИО</th>
+            <th>Дата рождения</th>
+            <th>Обязанность</th>
+        </tr>
+    </thead>
+    <tbody id="groupListTable">
+        <!-- Данные будут добавлены скриптом -->
+    </tbody>
+</table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Модальное окно для добавления участника -->
+    <div id="addMemberModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:1000; align-items:center; justify-content:center;">
+        <div style="background:#fff; padding:24px; border-radius:8px; min-width:300px;">
+            <h3>Добавить участника</h3>
+            <input id="memberFullName" type="text" placeholder="ФИО" style="width:100%;padding:8px;margin-bottom:8px;">
+            <input id="memberDuty" type="text" placeholder="Обязанность" style="width:100%;padding:8px;margin-bottom:8px;">
+            <input id="memberBirth" type="date" placeholder="Дата рождения" style="width:100%;padding:8px;margin-bottom:8px;">
+            <div style="margin-top:12px; text-align:right;">
+                <button id="saveMemberBtn" style="padding:6px 16px;">Сохранить</button>
+                <button id="cancelMemberBtn" style="padding:6px 16px;">Отмена</button>
+            </div>
+        </div>
+    </div>
+    <!-- Модальное окно для редактирования обязанности -->
+    <div id="editDutyModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:1000; align-items:center; justify-content:center;">
+        <div style="background:#fff; padding:24px; border-radius:8px; min-width:300px;">
+            <h3>Изменить обязанность</h3>
+            <input id="editDutyInput" type="text" placeholder="Новая обязанность" style="width:100%;padding:8px;margin-bottom:8px;">
+            <div style="margin-top:12px; text-align:right;">
+                <button id="saveEditDutyBtn" style="padding:6px 16px;">Сохранить</button>
+                <button id="cancelEditDutyBtn" style="padding:6px 16px;">Отмена</button>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
+    <script>
+let groupMembers = [];
+let editMemberIdx = null;
+
+// --- Добавьте это ---
+let currentUser = null;
+try {
+    currentUser = JSON.parse(localStorage.getItem('currentUser'));
+} catch {}
+// --- конец добавления ---
+
+// --- Новый блок для работы с названием группы ---
+let groupName = "Загрузка...";
+let headmanName = "Загрузка...";
+let studentsCount = "Загрузка...";
+
+// Проверка прав
+function canEditGroupInfo() {
+    if (!currentUser) return false;
+    const role = (currentUser.role || '').toLowerCase();
+    const roleName = (currentUser.roleName || '').toLowerCase();
+    return role === 'admin' || roleName === 'администратор' || role === 'curator' || roleName === 'куратор';
+}
+
+function canEditGroupName() {
+    return canEditGroupInfo();
+}
+
+// Получение названия группы
+async function fetchGroupName() {
+    try {
+        const res = await fetch('https://rapartichka-site.onrender.com/group-info');
+        if (res.ok) {
+            const data = await res.json();
+            groupName = data.name || "Без названия";
+        } else {
+            groupName = "Без названия";
+        }
+    } catch {
+        groupName = "Без названия";
+    }
+    renderGroupName();
+}
+
+// Получение старосты
+async function fetchHeadman() {
+    try {
+        const res = await fetch('https://rapartichka-site.onrender.com/headman');
+        if (res.ok) {
+            const data = await res.json();
+            headmanName = data.headman || "Не назначен";
+        } else {
+            headmanName = "Не назначен";
+        }
+    } catch {
+        headmanName = "Не назначен";
+    }
+    renderHeadman();
+}
+
+// Получение количества студентов
+async function fetchStudentsCount() {
+    try {
+        const res = await fetch('https://rapartichka-site.onrender.com/students-count');
+        if (res.ok) {
+            const data = await res.json();
+            studentsCount = data.count || 0;
+        } else {
+            studentsCount = 0;
+        }
+    } catch {
+        studentsCount = 0;
+    }
+    renderStudentsCount();
+}
+
+function renderGroupName() {
+    document.getElementById('groupName').textContent = groupName;
+    if (canEditGroupName()) {
+        document.getElementById('editGroupNameBtn').style.display = '';
+    } else {
+        document.getElementById('editGroupNameBtn').style.display = 'none';
+    }
+    document.getElementById('groupName').style.display = '';
+    document.getElementById('groupNameInput').style.display = 'none';
+    document.getElementById('saveGroupNameBtn').style.display = 'none';
+}
+
+function renderHeadman() {
+    document.getElementById('headmanName').textContent = headmanName;
+    if (canEditGroupInfo()) {
+        document.getElementById('editHeadmanBtn').style.display = '';
+    } else {
+        document.getElementById('editHeadmanBtn').style.display = 'none';
+    }
+    document.getElementById('headmanName').style.display = '';
+    document.getElementById('headmanInput').style.display = 'none';
+    document.getElementById('saveHeadmanBtn').style.display = 'none';
+}
+
+function renderStudentsCount() {
+    document.getElementById('studentsCount').textContent = studentsCount;
+    if (canEditGroupInfo()) {
+        document.getElementById('editStudentsCountBtn').style.display = '';
+    } else {
+        document.getElementById('editStudentsCountBtn').style.display = 'none';
+    }
+    document.getElementById('studentsCount').style.display = '';
+    document.getElementById('studentsCountInput').style.display = 'none';
+    document.getElementById('saveStudentsCountBtn').style.display = 'none';
+}
+
+async function fetchCurator() {
+    try {
+        const res = await fetch('https://rapartichka-site.onrender.com/curator');
+        if (res.ok) {
+            const data = await res.json();
+            document.getElementById('curatorName').textContent = data.curator || 'Не назначен';
+        } else {
+            document.getElementById('curatorName').textContent = 'Ошибка';
+        }
+    } catch {
+        document.getElementById('curatorName').textContent = 'Ошибка';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    fetchGroupName();
+    fetchCurator(); // <-- добавьте этот вызов
+    fetchGroupMembers();
+    fetchHeadman();
+    fetchStudentsCount();
+
+    document.getElementById('editGroupNameBtn').onclick = function() {
+        document.getElementById('groupName').style.display = 'none';
+        document.getElementById('editGroupNameBtn').style.display = 'none';
+        document.getElementById('groupNameInput').style.display = '';
+        document.getElementById('saveGroupNameBtn').style.display = '';
+        document.getElementById('groupNameInput').value = groupName;
+        document.getElementById('groupNameInput').focus();
+    };
+
+    document.getElementById('saveGroupNameBtn').onclick = async function() {
+        const newName = document.getElementById('groupNameInput').value.trim();
+        if (!newName) return;
+        try {
+            const res = await fetch('https://rapartichka-site.onrender.com/group-info', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: newName })
+            });
+            if (res.ok) {
+                await fetchGroupName(); // <-- обновляем с сервера!
+            } else {
+                alert('Ошибка сохранения');
+            }
+        } catch {
+            alert('Ошибка соединения с сервером');
+        }
+    };
+
+    // Староста
+    document.getElementById('editHeadmanBtn').onclick = function() {
+        document.getElementById('headmanName').style.display = 'none';
+        document.getElementById('editHeadmanBtn').style.display = 'none';
+        document.getElementById('headmanInput').style.display = '';
+        document.getElementById('saveHeadmanBtn').style.display = '';
+        document.getElementById('headmanInput').value = headmanName;
+        document.getElementById('headmanInput').focus();
+    };
+    document.getElementById('saveHeadmanBtn').onclick = async function() {
+        const newName = document.getElementById('headmanInput').value.trim();
+        if (!newName) return;
+        try {
+            const res = await fetch('https://rapartichka-site.onrender.com/headman', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ headman: newName })
+            });
+            if (res.ok) {
+                await fetchHeadman();
+            } else {
+                alert('Ошибка сохранения');
+            }
+        } catch {
+            alert('Ошибка соединения с сервером');
+        }
+    };
+
+    // Количество студентов
+    document.getElementById('editStudentsCountBtn').onclick = function() {
+        document.getElementById('studentsCount').style.display = 'none';
+        document.getElementById('editStudentsCountBtn').style.display = 'none';
+        document.getElementById('studentsCountInput').style.display = '';
+        document.getElementById('saveStudentsCountBtn').style.display = '';
+        document.getElementById('studentsCountInput').value = studentsCount;
+        document.getElementById('studentsCountInput').focus();
+    };
+    document.getElementById('saveStudentsCountBtn').onclick = async function() {
+        const newCount = parseInt(document.getElementById('studentsCountInput').value, 10);
+        if (!newCount || newCount < 1) return;
+        try {
+            const res = await fetch('https://rapartichka-site.onrender.com/students-count', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ count: newCount })
+            });
+            if (res.ok) {
+                await fetchStudentsCount();
+            } else {
+                alert('Ошибка сохранения');
+            }
+        } catch {
+            alert('Ошибка соединения с сервером');
+        }
+    };
+});
+
+// --- Остальной ваш код (работа с участниками) ---
+async function fetchGroupMembers() {
+    try {
+        const res = await fetch('https://rapartichka-site.onrender.com/group-members');
+        if (res.ok) {
+            groupMembers = await res.json();
+            console.log('groupMembers:', groupMembers);
+            renderGroupList();
+        } else {
+            groupMembers = [];
+            renderGroupList();
+        }
+    } catch (e) {
+        groupMembers = [];
+        renderGroupList();
+    }
+}
+
+async function addGroupMember(member) {
+    try {
+        const res = await fetch('https://rapartichka-site.onrender.com/group-members', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(member)
+        });
+        if (res.ok) {
+            await fetchGroupMembers();
+        } else {
+            alert('Ошибка при добавлении участника');
+        }
+    } catch (e) {
+        alert('Ошибка соединения с сервером');
+    }
+}
+
+async function deleteGroupMember(idx) {
+    const member = groupMembers[idx];
+    try {
+        const res = await fetch('https://rapartichka-site.onrender.com/group-members', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: member.id })
+        });
+        if (res.ok) {
+            await fetchGroupMembers();
+        } else {
+            alert('Ошибка при удалении');
+        }
+    } catch (e) {
+        alert('Ошибка соединения с сервером');
+    }
+}
+
+async function updateGroupMember(idx, member) {
+    const old = groupMembers[idx];
+    try {
+        const res = await fetch('https://rapartichka-site.onrender.com/group-members', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: old.id, fullName: member.fullName, duty: member.duty, birth: member.birth })
+        });
+        if (res.ok) {
+            await fetchGroupMembers();
+        } else {
+            alert('Ошибка при обновлении');
+        }
+    } catch (e) {
+        alert('Ошибка соединения с сервером');
+    }
+}
+
+function renderGroupList() {
+    const tbody = document.getElementById('groupListTable');
+    tbody.innerHTML = '';
+    groupMembers.forEach((member, idx) => {
+        let birthStr = member.birth ? member.birth : '';
+        // Если есть T, обрезаем всё после T
+        if (birthStr.includes('T')) {
+            birthStr = birthStr.split('T')[0];
+        }
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${member.fullName || ''}</td>
+            <td>${birthStr}</td>
+            <td>
+                ${member.duty || ''}
+                <button class="edit-duty-btn" data-idx="${idx}" style="margin-left:8px;font-size:13px;">✏️</button>
+                <button class="delete-member-btn" data-idx="${idx}" style="margin-left:4px;font-size:13px;color:#e74c3c;">🗑️</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    tbody.querySelectorAll('.edit-duty-btn').forEach(btn => {
+        btn.onclick = function() {
+            const idx = +btn.dataset.idx;
+            openEditDutyModal(idx);
+        };
+    });
+    tbody.querySelectorAll('.delete-member-btn').forEach(btn => {
+        btn.onclick = async function() {
+            const idx = +btn.dataset.idx;
+            if (confirm('Удалить участника?')) {
+                await deleteGroupMember(idx);
+            }
+        };
+    });
+}
+
+document.getElementById('addMemberBtn').onclick = function() {
+    document.getElementById('addMemberModal').style.display = 'flex';
+    document.getElementById('memberFullName').value = '';
+    document.getElementById('memberDuty').value = '';
+    document.getElementById('memberBirth').value = '';
+    document.getElementById('memberFullName').focus();
+    editMemberIdx = null;
+};
+
+document.getElementById('saveMemberBtn').onclick = async function() {
+    const fullName = document.getElementById('memberFullName').value.trim();
+    const duty = document.getElementById('memberDuty').value.trim();
+    const birth = document.getElementById('memberBirth').value;
+    if (!fullName || !duty || !birth) return;
+    if (editMemberIdx !== null) {
+        await updateGroupMember(editMemberIdx, { fullName, duty, birth });
+        editMemberIdx = null;
+    } else {
+        await addGroupMember({ fullName, duty, birth });
+    }
+    document.getElementById('addMemberModal').style.display = 'none';
+};
+
+function openEditDutyModal(idx) {
+    editMemberIdx = idx;
+    document.getElementById('editDutyInput').value = groupMembers[idx].duty;
+    document.getElementById('editDutyModal').style.display = 'flex';
+}
+
+document.getElementById('saveEditDutyBtn').onclick = async function() {
+    if (editMemberIdx === null) return;
+    const newDuty = document.getElementById('editDutyInput').value.trim();
+    if (!newDuty) return;
+    await updateGroupMember(editMemberIdx, {
+        fullName: groupMembers[editMemberIdx].fullName,
+        duty: newDuty,
+        birth: groupMembers[editMemberIdx].birth // <-- обязательно передавай дату!
+    });
+    document.getElementById('editDutyModal').style.display = 'none';
+    editMemberIdx = null;
+};
+
+document.getElementById('cancelEditDutyBtn').onclick = function() {
+    document.getElementById('editDutyModal').style.display = 'none';
+    editMemberIdx = null;
+};
+
+document.addEventListener('DOMContentLoaded', fetchGroupMembers);
+
+// Открытие/закрытие сайдбара по кнопке-бургеру
+document.getElementById('sidebarToggleBtn').onclick = function(e) {
+    e.stopPropagation();
+    document.body.classList.toggle('sidebar-open');
+    document.getElementById('sidebar').classList.toggle('open');
+};
+
+// Закрытие сайдбара при клике вне его (на мобильных)
+document.addEventListener('click', function(e) {
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('sidebarToggleBtn');
+    if (
+        document.body.classList.contains('sidebar-open') &&
+        !sidebar.contains(e.target) &&
+        e.target !== toggleBtn
+    ) {
+        document.body.classList.remove('sidebar-open');
+        sidebar.classList.remove('open');
+    }
+});
+    </script>
+</body>
+</html>

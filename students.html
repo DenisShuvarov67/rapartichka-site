@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Панель старосты и его зама</title>
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+.flex-panel {
+    display: flex;
+    gap: 40px;
+    justify-content: center;
+    align-items: flex-start;
+    margin-top: 20px;
+    font-family: 'Segoe UI', 'Arial', sans-serif; /* Новый шрифт */
+}
+.students-column, .subjects-column {
+    background: #fff;
+    border-radius: 12px;
+    padding: 28px 22px;
+    min-width: 260px;
+    box-shadow: 0 2px 12px #0002;
+    color: #23262C; /* Тёмный текст */
+    font-size: 1.08em;
+    transition: box-shadow 0.2s;
+}
+.students-column h3, .subjects-column h3 {
+    font-family: 'Segoe UI Semibold', 'Arial', sans-serif;
+    color: #2980ef;
+    margin-bottom: 18px;
+    font-size: 1.22em;
+    letter-spacing: 0.5px;
+}
+.students-column ul, .subjects-column ul {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 18px;
+}
+.students-column li, .subjects-column li {
+    background: #f7faff;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    padding: 7px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #222;
+    font-size: 1em;
+}
+.students-column button, .subjects-column button {
+    background: #2980ef;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 16px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background 0.2s;
+}
+.students-column button:hover, .subjects-column button:hover {
+    background: #1761b0;
+}
+input[type="text"] {
+    border: 1px solid #cfd8dc;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 1em;
+    margin-bottom: 10px;
+    width: 90%;
+    background: #f7faff;
+    color: #23262C;
+    outline: none;
+    transition: border 0.2s;
+}
+input[type="text"]:focus {
+    border: 1.5px solid #2980ef;
+}
+@media (max-width: 800px) {
+    .flex-panel {
+        flex-direction: column;
+        gap: 24px;
+        align-items: stretch;
+    }
+}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Панель старосты и его зама</h2>
+        <div id="accessDenied" style="display:none;color:red;text-align:center;margin-top:50px;font-size:1.5em;">
+            У вас нет доступа к этому разделу<br>
+            <a href="index.html">Вернуться на главную</a>
+        </div>
+        <div id="studentsPanel" style="display:none;">
+            <div class="flex-panel">
+                <div class="students-column">
+                    <h3>Студенты</h3>
+                    <ul id="studentList"></ul>
+                    <input type="text" id="newStudentInput" placeholder="ФИО нового студента">
+                    <button id="addStudentBtn">Добавить</button>
+                </div>
+                <div class="subjects-column">
+                    <h3>Предметы</h3>
+                    <ul id="subjectList"></ul>
+                    <input type="text" id="newSubjectInput" placeholder="Название нового предмета">
+                    <button id="addSubjectBtn">Добавить предмет</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <nav class="topbar" id="topbar">
+        <div class="topbar-links" id="topbarLinks">
+            <a href="index.html" class="sidebar-link" title="Главная">
+                <span class="sidebar-icon"><i class="fas fa-home"></i></span>
+                <span class="sidebar-label">Главная</span>
+            </a>
+            <a href="attendance.html" class="sidebar-link" title="Отметить явку">
+                <span class="sidebar-icon"><i class="fas fa-user-check"></i></span>
+                <span class="sidebar-label">Явка</span>
+            </a>
+            <a href="absences.html" class="sidebar-link" title="Явка за месяц">
+                <span class="sidebar-icon"><i class="fas fa-chart-bar"></i></span>
+                <span class="sidebar-label">Явка за месяц</span>
+            </a>
+            <a href="students.html" class="sidebar-link" title="Панель старосты и его зама">
+                <span class="sidebar-icon"><i class="fas fa-user-graduate"></i></span>
+                <span class="sidebar-label">Панель старосты и его зама</span>
+            </a>
+            <a id="adminLink" href="admin.html" class="sidebar-link" style="display:none;">
+                <span class="sidebar-icon"><i class="fas fa-user-shield"></i></span>
+                <span class="sidebar-label">Админ<br>панель</span>
+            </a>
+            <a href="settings.html" class="sidebar-link" title="Настройки">
+                <span class="sidebar-icon"><i class="fas fa-cog"></i></span>
+                <span class="sidebar-label settings-label">Настройки</span>
+            </a>
+            <button class="logout-btn" onclick="window.location.href='login.html'">
+                <span class="sidebar-icon"><i class="fas fa-sign-out-alt"></i></span>
+                <span class="logout-label">Выйти</span>
+            </button>
+        </div>
+    </nav>
+    <script>
+    // Проверка доступа
+    document.addEventListener('DOMContentLoaded', function() {
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        const allowedRoles = ['староста', 'зам старосты', 'администратор', 'куратор'];
+        const userRole = (user?.roleName || user?.role || '').toLowerCase();
+        if (!user || !allowedRoles.includes(userRole)) {
+            document.getElementById('accessDenied').style.display = '';
+            document.getElementById('studentsPanel').style.display = 'none';
+        } else {
+            document.getElementById('accessDenied').style.display = 'none';
+            document.getElementById('studentsPanel').style.display = '';
+        }
+    });
+
+    // Работа со студентами
+    async function fetchStudents() {
+        const res = await fetch('/students');
+        const students = await res.json();
+        const list = document.getElementById('studentList');
+        list.innerHTML = '';
+        students.forEach(student => {
+            const li = document.createElement('li');
+            li.textContent = student.name + ' ';
+            const del = document.createElement('button');
+            del.textContent = 'Удалить';
+            del.onclick = async () => {
+                await fetch('/students', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: student.id })
+                });
+                await fetchStudents();
+            };
+            li.appendChild(del);
+            list.appendChild(li);
+        });
+    }
+
+    // Добавление студента
+    document.getElementById('addStudentBtn').onclick = async function() {
+        const input = document.getElementById('newStudentInput');
+        const name = input.value.trim();
+        if (name) {
+            await fetch('/students', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name })
+            });
+            await fetchStudents();
+            input.value = '';
+        }
+    };
+
+    // Загружаем список студентов при открытии страницы
+    document.addEventListener('DOMContentLoaded', fetchStudents);
+
+    // Работа с предметами
+    async function fetchSubjects() {
+        const res = await fetch('/subjects');
+        const subjects = await res.json();
+        const list = document.getElementById('subjectList');
+        list.innerHTML = '';
+        subjects.forEach(subject => {
+            const li = document.createElement('li');
+            li.textContent = subject.name + ' ';
+            const del = document.createElement('button');
+            del.textContent = 'Удалить';
+            del.onclick = async () => {
+                await fetch('/subjects', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: subject.id })
+                });
+                await fetchSubjects();
+            };
+            li.appendChild(del);
+            list.appendChild(li);
+        });
+    }
+
+    // Добавление предмета
+    document.getElementById('addSubjectBtn').onclick = async function() {
+        const input = document.getElementById('newSubjectInput');
+        const name = input.value.trim();
+        if (name) {
+            await fetch('/subjects', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name })
+            });
+            await fetchSubjects();
+            input.value = '';
+        }
+    };
+
+    // Загружаем список предметов при открытии страницы
+    document.addEventListener('DOMContentLoaded', fetchSubjects);
+
+    // Проверка, был ли пользователь отключён администратором
+    function checkKicked() {
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        if (!user) return;
+        const onlineUsers = JSON.parse(localStorage.getItem('onlineUsers')) || [];
+        const isOnline = onlineUsers.some(u => u.username === user.username);
+        if (!isOnline) {
+            alert('Вы были отключены администратором!');
+            localStorage.removeItem('currentUser');
+            window.location.href = 'login.html';
+        }
+    }
+    setInterval(checkKicked, 5000);
+    checkKicked();
+    </script>
+</body>
+</html>
